@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Chattahoochee Watch — West Point Lake &amp; River, Atlanta to LaGrange</title>
+<meta name="description" content="Live water levels, streamflow, water quality and weather for West Point Lake and the Chattahoochee River from Atlanta to LaGrange, GA."/>
+<link rel="stylesheet" href="assets/styles.css"/>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>"/>
+</head>
+<body>
+<header class="top">
+  <div class="wrap topbar">
+    <div>
+      <h1>Chattahoochee Watch</h1>
+      <p class="tagline">West Point Lake &amp; the Chattahoochee River — Buford Dam to LaGrange, live</p>
+    </div>
+    <div class="status">
+      <span id="updated" class="upd">Loading live data…</span>
+      <button id="refresh" class="btn" type="button">Refresh</button>
+    </div>
+  </div>
+  <nav class="wrap tabs" id="tabs">
+    <button class="tab active" data-panel="now">Lake Now</button>
+    <button class="tab" data-panel="river">River Profile</button>
+    <button class="tab" data-panel="quality">Water Quality</button>
+    <button class="tab" data-panel="weather">Weather</button>
+    <button class="tab" data-panel="cams">Cameras</button>
+    <button class="tab" data-panel="rain">Rain vs Normal</button>
+  </nav>
+</header>
+
+<main class="wrap">
+
+  <!-- ================= LAKE NOW ================= -->
+  <section class="panel active" id="panel-now">
+    <div class="hero card" id="lakeHero">
+      <div class="skel h">Reading West Point Lake gauge…</div>
+    </div>
+
+    <div class="grid" id="lakeKpis"></div>
+
+    <div class="card">
+      <h3>Pool elevation — last 14 days</h3>
+      <p class="cap">West Point Lake surface elevation (USGS 02339400) against the approximate USACE guide curve.</p>
+      <div id="lakeChart" class="chartbox"><div class="skel">Loading…</div></div>
+    </div>
+
+    <div class="two">
+      <div class="card">
+        <h3>Water budget</h3>
+        <p class="cap">Inflow at Franklin vs outflow below the dam. A positive balance means the lake is filling.</p>
+        <div id="budget"><div class="skel">Loading…</div></div>
+      </div>
+      <div class="card">
+        <h3>Lake Sidney Lanier <span class="pill">upstream storage</span></h3>
+        <p class="cap">Lanier controls what eventually reaches West Point. Full pool is 1,071 ft.</p>
+        <div id="lanier"><div class="skel">Loading…</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= RIVER ================= -->
+  <section class="panel" id="panel-river">
+    <div class="card">
+      <h3>The corridor, top to bottom</h3>
+      <p class="cap">Every active USGS gauge on the Chattahoochee mainstem from Buford Dam through Atlanta to West Point,
+        ordered downstream. Flow generally grows as tributaries join.</p>
+      <div id="riverProfile"><div class="skel">Loading gauges…</div></div>
+    </div>
+    <div class="card">
+      <h3>Streamflow — last 7 days</h3>
+      <p class="cap">Normalized hydrographs. Rising lines upstream today usually mean rising water at West Point in 1–3 days.</p>
+      <div class="chips" id="flowChips"></div>
+      <div id="flowChart" class="chartbox"><div class="skel">Loading…</div></div>
+    </div>
+  </section>
+
+  <!-- ================= QUALITY ================= -->
+  <section class="panel" id="panel-quality">
+    <div class="card alert" id="qualityVerdict"><div class="skel">Assessing water quality…</div></div>
+    <div class="grid" id="qualityKpis"></div>
+    <div class="card">
+      <h3>Bacteria — E. coli at Atlanta &amp; Norcross</h3>
+      <p class="cap">USGS BacteriALERT estimates bacteria continuously from turbidity and flow. The red line is
+        <b>235 cfu/100 mL</b>, the single-sample threshold above which contact recreation is discouraged.</p>
+      <div id="ecoliChart" class="chartbox"><div class="skel">Loading…</div></div>
+    </div>
+    <div class="two">
+      <div class="card">
+        <h3>Turbidity — how muddy the river is</h3>
+        <p class="cap">Spikes track runoff. Muddy water almost always means elevated bacteria.</p>
+        <div id="turbChart" class="chartbox"><div class="skel">Loading…</div></div>
+      </div>
+      <div class="card">
+        <h3>Dissolved oxygen &amp; pH</h3>
+        <p class="cap">DO below 5 mg/L stresses fish. Georgia's standard for warm-water streams is a 5.0 mg/L minimum.</p>
+        <div id="doChart" class="chartbox"><div class="skel">Loading…</div></div>
+      </div>
+    </div>
+    <div class="card note-card">
+      <h3>How to read this</h3>
+      <ul class="take" id="qualityNotes"></ul>
+    </div>
+  </section>
+
+  <!-- ================= WEATHER ================= -->
+  <section class="panel" id="panel-weather">
+    <div class="card" id="nowWx"><div class="skel h">Loading conditions…</div></div>
+    <div class="card">
+      <h3>7-day outlook — LaGrange &amp; the lake</h3>
+      <div id="forecast"><div class="skel">Loading NWS forecast…</div></div>
+    </div>
+    <div class="two">
+      <div class="card">
+        <h3>Rain expected — next 10 days</h3>
+        <p class="cap">Daily precipitation totals and chance of rain for the LaGrange / West Point area.</p>
+        <div id="rainFcChart" class="chartbox"><div class="skel">Loading…</div></div>
+      </div>
+      <div class="card">
+        <h3>Basin rainfall — last 7 days</h3>
+        <p class="cap">What has already fallen upstream. This is the water headed toward the lake.</p>
+        <div id="basinRain"><div class="skel">Loading…</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Live conditions on the water</h3>
+      <p class="cap">On-site weather stations at West Point Lake and Lake Lanier (USGS).</p>
+      <div class="two" id="lakeWx"></div>
+    </div>
+  </section>
+
+  <!-- ================= CAMERAS ================= -->
+  <section class="panel" id="panel-cams">
+    <div class="card">
+      <h3>Live cameras along the corridor</h3>
+      <p class="cap">Public GDOT / 511GA traffic cameras positioned at or near Chattahoochee River crossings,
+        ordered downstream from Atlanta to West Point. Images refresh every 60 seconds.
+        These are roadway cameras, not scenic river cams — and GDOT rotates capacity, so any individual
+        camera may show an “image unavailable” placeholder. Use them to eyeball conditions, not to judge river stage.</p>
+      <div class="camctl">
+        <button id="camRefresh" class="btn" type="button">Refresh all cameras</button>
+        <span class="dim" id="camNote"></span>
+      </div>
+      <div class="camgrid" id="camGrid"></div>
+    </div>
+    <div class="card note-card">
+      <h3>What we could not find</h3>
+      <ul class="take">
+        <li><b>No public dam cameras.</b> Neither the Corps of Engineers at West Point Dam nor Buford Dam publishes
+          an embeddable live camera feed.</li>
+        <li><b>No National Park Service cams.</b> The Chattahoochee River National Recreation Area does not run a public webcam.</li>
+        <li><b>Video streams are locked.</b> GDOT does publish HLS video for these cameras, but the streams require
+          authentication, so only the still images can be shown here.</li>
+      </ul>
+      <p class="cap" style="margin-top:12px">Camera imagery courtesy of the
+        <a href="https://511ga.org/map" target="_blank" rel="noopener">Georgia Department of Transportation / 511GA</a>.</p>
+    </div>
+  </section>
+
+  <!-- ================= RAIN CLIMATOLOGY ================= -->
+  <section class="panel" id="panel-rain">
+    <div class="card alert" id="rainVerdict"><div class="skel">Loading rainfall climatology…</div></div>
+    <div class="grid" id="rainKpis"></div>
+    <div class="card">
+      <h3>Rain days per month — this year vs 2015–2025</h3>
+      <p class="cap">A “rain day” is any day with at least 0.01 in of measurable precipitation at LaGrange.
+        Whiskers show the historical minimum–maximum range for that month.</p>
+      <div id="rainDaysChart" class="chartbox"></div>
+      <div class="legend">
+        <span><i class="sw avg"></i>2015–2025 average</span>
+        <span><i class="sw cur"></i>this year</span>
+        <span><i class="sw rng"></i>historical range</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Monthly rainfall totals (inches)</h3>
+      <p class="cap">Same comparison, measuring volume instead of frequency.</p>
+      <div id="rainInChart" class="chartbox"></div>
+    </div>
+    <div class="card">
+      <h3>Year to date, every year since 2015</h3>
+      <p class="cap">The identical calendar window each year, so the current partial year is compared fairly.</p>
+      <div id="ytdDaysChart" class="chartbox"></div>
+      <div id="ytdInChart" class="chartbox"></div>
+    </div>
+    <div class="card">
+      <h3>Month-by-month detail</h3>
+      <div class="tablewrap"><table id="rainTable"></table></div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <p><b>Sources.</b> Water levels, streamflow and water quality: <a href="https://waterservices.usgs.gov/" target="_blank" rel="noopener">USGS National Water Information System</a> (instantaneous values, updated every 15–60 minutes).
+      Forecast: <a href="https://www.weather.gov/ffc/" target="_blank" rel="noopener">NOAA / National Weather Service Peachtree City</a>.
+      Precipitation history and forecast: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> (ERA5 reanalysis + operational models).
+      Camera stills: <a href="https://511ga.org/map" target="_blank" rel="noopener">Georgia DOT / 511GA</a>.</p>
+    <p><b>Caveats.</b> These are provisional, unreviewed sensor readings and may contain errors or gaps. The USACE guide curve
+      shown for West Point Lake is approximate and reconstructed for reference — consult the
+      <a href="https://water.sam.usace.army.mil/" target="_blank" rel="noopener">Mobile District</a> for official lake operations.
+      BacteriALERT values are model estimates, not laboratory results. Nothing here is a substitute for official flood,
+      navigation or public-health advisories.</p>
+    <p class="tiny">Chattahoochee Watch · data refreshes automatically in your browser · <span id="builtAt"></span></p>
+  </footer>
+</main>
+
+<script src="assets/charts.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

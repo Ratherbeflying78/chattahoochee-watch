@@ -1,0 +1,55 @@
+name: Update data and deploy
+
+on:
+  schedule:
+    # 06:10 and 18:10 UTC daily — after ERA5 archive refreshes
+    - cron: '10 6,18 * * *'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Refresh rainfall climatology
+        run: python scripts/build_climatology.py
+        continue-on-error: true
+
+      - name: Snapshot gauge readings
+        run: python scripts/snapshot.py
+        continue-on-error: true
+
+      - name: Commit refreshed data
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain data)" ]; then
+            git add data
+            git commit -m "chore: refresh water and rainfall data [skip ci]"
+            git push
+          else
+            echo "No data changes to commit."
+          fi
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - id: deployment
+        uses: actions/deploy-pages@v4
