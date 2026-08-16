@@ -15,19 +15,30 @@
 
   // Ordered downstream: Lanier -> Buford -> Atlanta -> West Point
   const STATIONS = [
-    { id: '02334400', name: 'Lake Sidney Lanier', sub: 'near Buford — headwater reservoir', type: 'lake', rm: 348 },
-    { id: '02334430', name: 'Buford Dam', sub: 'Chattahoochee R. at Buford Dam', type: 'river', rm: 348 },
-    { id: '02335000', name: 'Norcross', sub: 'Chattahoochee R. near Norcross', type: 'river', rm: 320 },
-    { id: '02335450', name: 'Above Roswell', sub: 'Chattahoochee R. above Roswell', type: 'river', rm: 309 },
-    { id: '02335815', name: 'Morgan Falls Dam', sub: 'below Morgan Falls Dam', type: 'river', rm: 305 },
-    { id: '02336000', name: 'Atlanta', sub: 'Chattahoochee R. at Atlanta (US 41)', type: 'river', rm: 300 },
-    { id: '02336490', name: 'GA 280 near Atlanta', sub: 'below Peachtree Creek', type: 'river', rm: 294 },
-    { id: '02337170', name: 'Fairburn', sub: 'Chattahoochee R. near Fairburn', type: 'river', rm: 277 },
-    { id: '02338000', name: 'Whitesburg', sub: 'Chattahoochee R. near Whitesburg', type: 'river', rm: 253 },
-    { id: '02338500', name: 'Franklin', sub: 'Chattahoochee R. at GA 100 — lake inflow', type: 'river', rm: 235 },
-    { id: '02339400', name: 'West Point Lake', sub: 'reservoir pool near West Point', type: 'lake', rm: 205 },
-    { id: '02339402', name: 'Below West Point Dam', sub: 'tailwater stage', type: 'river', rm: 201 },
-    { id: '02339500', name: 'West Point', sub: 'Chattahoochee R. at West Point', type: 'river', rm: 200 }
+    { id: '02334400', name: 'Lake Sidney Lanier', sub: 'near Buford — headwater reservoir', type: 'lake', lat: 34.16272, lon: -84.07553 },
+    { id: '02334430', name: 'Buford Dam', sub: 'Chattahoochee R. at Buford Dam', type: 'river', lat: 34.15667, lon: -84.07842 },
+    { id: '02335000', name: 'Norcross', sub: 'Chattahoochee R. near Norcross', type: 'river', lat: 33.99722, lon: -84.20194 },
+    { id: '02335450', name: 'Above Roswell', sub: 'Chattahoochee R. above Roswell', type: 'river', lat: 33.98581, lon: -84.31569 },
+    { id: '02335815', name: 'Morgan Falls Dam', sub: 'below Morgan Falls Dam', type: 'river', lat: 33.96775, lon: -84.38367 },
+    { id: '02336000', name: 'Atlanta', sub: 'Chattahoochee R. at Atlanta (US 41)', type: 'river', lat: 33.85917, lon: -84.45444 },
+    { id: '02336490', name: 'GA 280 near Atlanta', sub: 'below Peachtree Creek', type: 'river', lat: 33.81742, lon: -84.48033 },
+    { id: '02337170', name: 'Fairburn', sub: 'Chattahoochee R. near Fairburn', type: 'river', lat: 33.65667, lon: -84.67361 },
+    { id: '02338000', name: 'Whitesburg', sub: 'Chattahoochee R. near Whitesburg', type: 'river', lat: 33.47653, lon: -84.90119 },
+    { id: '02338500', name: 'Franklin', sub: 'Chattahoochee R. at GA 100 — lake inflow', type: 'river', lat: 33.27797, lon: -85.10092 },
+    { id: '02339400', name: 'West Point Lake', sub: 'reservoir pool near West Point', type: 'lake', lat: 32.91825, lon: -85.18775 },
+    { id: '02339402', name: 'Below West Point Dam', sub: 'tailwater stage', type: 'river', lat: 32.91819, lon: -85.18786 },
+    { id: '02339500', name: 'West Point', sub: 'Chattahoochee R. at West Point', type: 'river', lat: 32.88664, lon: -85.18158 }
+  ];
+
+  const PLACES = [
+    { name: 'Buford', lat: 34.1206, lon: -84.0044 },
+    { name: 'Roswell', lat: 34.0232, lon: -84.3616 },
+    { name: 'Atlanta', lat: 33.7490, lon: -84.3880 },
+    { name: 'Douglasville', lat: 33.7515, lon: -84.7477 },
+    { name: 'Newnan', lat: 33.3807, lon: -84.7997 },
+    { name: 'Carrollton', lat: 33.5801, lon: -85.0766 },
+    { name: 'LaGrange', lat: 33.0362, lon: -85.0313 },
+    { name: 'West Point', lat: 32.8779, lon: -85.1830 }
   ];
   const SITE = Object.fromEntries(STATIONS.map(s => [s.id, s]));
   const SITE_IDS = STATIONS.map(s => s.id).join(',');
@@ -249,6 +260,280 @@
   /* =====================================================================
      PANEL 2 — RIVER PROFILE
      ===================================================================== */
+  /* =====================================================================
+     RIVER MAP
+     ===================================================================== */
+  let GEO = null, MAP_METRIC = 'flow', MAP_SEL = null;
+
+  function loadGeo() {
+    if (GEO) return Promise.resolve(GEO);
+    return fetchJSON('data/geo.json', 25000).then(g => { GEO = g; return g; });
+  }
+
+  const METRICS = {
+    flow:    { label: 'Streamflow', unit: 'cfs', dp: 0 },
+    level:   { label: 'Stage / pool', unit: 'ft', dp: 2 },
+    temp:    { label: 'Water temperature', unit: '°F', dp: 1 },
+    quality: { label: 'Water quality', unit: '', dp: 1 }
+  };
+
+  // Value for a station under the active metric.
+  function metricValue(st, metric) {
+    if (metric === 'flow') {
+      const v = val(st.id, P.flow);
+      return v === null ? null : { v, txt: F(v, 0) + ' cfs' };
+    }
+    if (metric === 'level') {
+      if (st.type === 'lake') {
+        const v = val(st.id, P.elev);
+        return v === null ? null : { v, txt: F(v, 2) + ' ft' };
+      }
+      const v = val(st.id, P.stage);
+      return v === null ? null : { v, txt: F(v, 2) + ' ft' };
+    }
+    if (metric === 'temp') {
+      const c = val(st.id, P.wtemp);
+      return c === null ? null : { v: cToF(c), txt: F(cToF(c), 1) + '°F' };
+    }
+    // quality: prefer bacteria, then DO, then turbidity
+    const ec = val(st.id, P.ecoli);
+    if (ec !== null) return { v: ec, txt: F(ec, 0) + ' cfu', kind: 'ecoli' };
+    const dox = val(st.id, P.do);
+    if (dox !== null) return { v: dox, txt: F(dox, 1) + ' mg/L', kind: 'do' };
+    const tb = val(st.id, P.turb);
+    if (tb !== null) return { v: tb, txt: F(tb, 1) + ' FNU', kind: 'turb' };
+    return null;
+  }
+
+  function metricColor(st, metric, m) {
+    if (!m) return '#3d4d6d';
+    if (metric === 'quality') {
+      if (m.kind === 'ecoli') return m.v >= ECOLI_THRESHOLD ? '#f87171'
+        : m.v >= ECOLI_THRESHOLD / 2 ? '#fbbf24' : '#4ade80';
+      if (m.kind === 'do') return m.v < DO_MIN ? '#f87171' : m.v < DO_MIN + 1 ? '#fbbf24' : '#4ade80';
+      return m.v >= 50 ? '#f87171' : m.v >= 15 ? '#fbbf24' : '#4ade80';
+    }
+    if (metric === 'temp') {
+      const t = Math.max(0, Math.min(1, (m.v - 45) / 40));      // 45°F -> 85°F
+      const r = Math.round(56 + t * 190), g = Math.round(160 - t * 90), b = Math.round(230 - t * 150);
+      return `rgb(${r},${g},${b})`;
+    }
+    if (metric === 'flow') {
+      const t = Math.max(0, Math.min(1, Math.log10(Math.max(m.v, 1)) / 4.2));
+      const r = Math.round(120 - t * 96), g = Math.round(200 - t * 60), b = Math.round(255 - t * 40);
+      return `rgb(${r},${g},${b})`;
+    }
+    return '#38bdf8';
+  }
+
+  function metricRadius(metric, m) {
+    if (!m) return 5;
+    if (metric === 'flow') return 5 + Math.min(9, Math.log10(Math.max(m.v, 1)) * 2.6);
+    if (metric === 'quality' || metric === 'temp' || metric === 'level') return 7;
+    return 6;
+  }
+
+  function renderMap() {
+    const box = $('#riverMap');
+    if (!GEO) { box.innerHTML = '<div class="err">Map geometry could not be loaded.</div>'; return; }
+    if (!Object.keys(DATA.sites).length) return;   // wait for readings
+
+    // ---- bounds over geometry + stations
+    let latMin = 90, latMax = -90, lonMin = 180, lonMax = -180;
+    const bump = (la, lo) => {
+      if (la < latMin) latMin = la; if (la > latMax) latMax = la;
+      if (lo < lonMin) lonMin = lo; if (lo > lonMax) lonMax = lo;
+    };
+    GEO.river.forEach(p => bump(p[0], p[1]));
+    Object.values(GEO.lakes).forEach(rs => rs.forEach(r => r.forEach(p => bump(p[0], p[1]))));
+    STATIONS.forEach(s => bump(s.lat, s.lon));
+
+    const padLat = (latMax - latMin) * 0.045, padLon = (lonMax - lonMin) * 0.045;
+    latMin -= padLat; latMax += padLat; lonMin -= padLon; lonMax += padLon;
+
+    const k = Math.cos((latMin + latMax) / 2 * Math.PI / 180);
+    const spanX = (lonMax - lonMin) * k, spanY = latMax - latMin;
+    const W = 780, H = Math.round(W * (spanY / spanX));
+    const PAD = 34;
+    const X = lo => ((lo - lonMin) * k / spanX) * (W - PAD * 2) + PAD;
+    const Y = la => ((latMax - la) / spanY) * (H - 20) + 10;
+
+    const NS = 'http://www.w3.org/2000/svg';
+    const mk = (n, a) => {
+      const e = document.createElementNS(NS, n);
+      for (const q in a) if (a[q] != null) e.setAttribute(q, a[q]);
+      return e;
+    };
+    const svg = mk('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img',
+      'aria-label': 'Map of the Chattahoochee River with gauge readings' });
+    svg.appendChild(mk('rect', { x: 0, y: 0, width: W, height: H, class: 'mapbg' }));
+
+    // graticule
+    for (let la = Math.ceil(latMin * 2) / 2; la <= latMax; la += 0.5) {
+      svg.appendChild(mk('line', { x1: 0, y1: Y(la).toFixed(1), x2: W, y2: Y(la).toFixed(1), class: 'gridline' }));
+    }
+    for (let lo = Math.ceil(lonMin * 2) / 2; lo <= lonMax; lo += 0.5) {
+      svg.appendChild(mk('line', { x1: X(lo).toFixed(1), y1: 0, x2: X(lo).toFixed(1), y2: H, class: 'gridline' }));
+    }
+
+    // lakes
+    Object.values(GEO.lakes).forEach(rs => rs.forEach(r => {
+      const d = r.map((p, i) => (i ? 'L' : 'M') + X(p[1]).toFixed(1) + ' ' + Y(p[0]).toFixed(1)).join(' ') + ' Z';
+      svg.appendChild(mk('path', { d, class: 'lakepoly' }));
+    }));
+
+    // river
+    const rd = GEO.river.map((p, i) => (i ? 'L' : 'M') + X(p[1]).toFixed(1) + ' ' + Y(p[0]).toFixed(1)).join(' ');
+    svg.appendChild(mk('path', { d: rd, class: 'riverglow', 'stroke-width': 7 }));
+    svg.appendChild(mk('path', { d: rd, class: 'riverline', 'stroke-width': 2.6 }));
+
+    // places
+    PLACES.forEach(p => {
+      const x = X(p.lon), y = Y(p.lat);
+      if (x < 0 || x > W || y < 0 || y > H) return;
+      svg.appendChild(mk('circle', { cx: x.toFixed(1), cy: y.toFixed(1), r: 2, class: 'placedot' }));
+      const t = mk('text', { x: (x + 5).toFixed(1), y: (y + 3).toFixed(1), class: 'placelbl' });
+      t.textContent = p.name;
+      svg.appendChild(t);
+    });
+
+    // scale bar (25 km)
+    const kmPerDegLat = 111.0;
+    const px25 = (25 / kmPerDegLat / spanY) * (H - 20);
+    const sx = 14, sy = H - 16;
+    svg.appendChild(mk('line', { x1: sx, y1: sy, x2: sx + px25, y2: sy, class: 'scalebar' }));
+    svg.appendChild(mk('line', { x1: sx, y1: sy - 4, x2: sx, y2: sy + 4, class: 'scalebar' }));
+    svg.appendChild(mk('line', { x1: sx + px25, y1: sy - 4, x2: sx + px25, y2: sy + 4, class: 'scalebar' }));
+    const st = mk('text', { x: sx + px25 + 6, y: sy + 4, class: 'scaletxt' });
+    st.textContent = '25 km';
+    svg.appendChild(st);
+
+    // ---- gauge markers (markers in one layer, labels above them all)
+    const mLayer = mk('g', {}), lLayer = mk('g', {});
+    const labels = [];
+    STATIONS.forEach(s => {
+      const m = metricValue(s, MAP_METRIC);
+      const x = X(s.lon), y = Y(s.lat);
+      // put labels into the open side of the frame
+      const right = x < W * 0.42;
+      // push labels apart until this one clears every label already placed
+      let dy = 0, guard = 0;
+      while (guard++ < 40 && labels.some(p => p.right === right &&
+             Math.abs(p.x - x) < 115 && Math.abs((p.y + p.dy) - (y + dy)) < 23)) dy += 23;
+      labels.push({ x, y, dy, right });
+
+      const cls = 'gnode' + (MAP_SEL === s.id ? ' sel' : '') + (m ? '' : ' dim');
+      const g = mk('g', { class: cls, tabindex: '0', role: 'button', 'aria-label': s.name });
+      const lg = mk('g', { class: cls });
+      const color = metricColor(s, MAP_METRIC, m);
+      const r = metricRadius(MAP_METRIC, m);
+
+      g.appendChild(mk('circle', { cx: x.toFixed(1), cy: y.toFixed(1), r: (r + 4).toFixed(1),
+        class: 'halo', stroke: color }));
+      g.appendChild(mk('circle', { cx: x.toFixed(1), cy: y.toFixed(1), r: r.toFixed(1),
+        class: 'core', fill: color }));
+      if (s.type === 'lake') {
+        g.appendChild(mk('rect', { x: (x - 2).toFixed(1), y: (y - 2).toFixed(1), width: 4, height: 4,
+          fill: '#08111f', transform: `rotate(45 ${x.toFixed(1)} ${y.toFixed(1)})` }));
+      }
+
+      const tx = right ? x + r + 7 : x - r - 7;
+      const anchor = right ? 'start' : 'end';
+      const ly = y + dy;
+      // leader line when the label had to be nudged away from its marker
+      if (dy > 2) {
+        lg.appendChild(mk('line', { x1: (right ? x + r + 1 : x - r - 1).toFixed(1), y1: y.toFixed(1),
+          x2: tx.toFixed(1), y2: (ly - 3).toFixed(1), class: 'leader', stroke: color }));
+      }
+      const n = mk('text', { x: tx.toFixed(1), y: (ly - 1).toFixed(1), 'text-anchor': anchor });
+      n.textContent = s.name;
+      lg.appendChild(n);
+      const v = mk('text', { x: tx.toFixed(1), y: (ly + 9).toFixed(1), 'text-anchor': anchor,
+        class: 'val', fill: color });
+      v.textContent = m ? m.txt : 'not reported';
+      lg.appendChild(v);
+
+      const ti = document.createElementNS(NS, 'title');
+      ti.textContent = `${s.name} — ${s.sub}\n${METRICS[MAP_METRIC].label}: ${m ? m.txt : 'not reported'}`;
+      g.appendChild(ti);
+
+      const pick = () => { MAP_SEL = s.id; renderMap(); showStation(s.id); };
+      [g, lg].forEach(node => {
+        node.addEventListener('click', pick);
+        node.addEventListener('mouseenter', () => showStation(s.id, true));
+      });
+      g.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); pick(); } });
+      mLayer.appendChild(g);
+      lLayer.appendChild(lg);
+    });
+    svg.appendChild(mLayer);
+    svg.appendChild(lLayer);
+
+    box.innerHTML = '';
+    box.appendChild(svg);
+    renderLegend();
+    if (!MAP_SEL) showStation(null);
+  }
+
+  function renderLegend() {
+    const L = $('#mapLegend');
+    if (!L) return;
+    const sw = (c, t) => `<span><i class="sw" style="background:${c}"></i>${esc(t)}</span>`;
+    if (MAP_METRIC === 'quality') {
+      L.innerHTML = sw('#4ade80', 'Good') + sw('#fbbf24', 'Elevated') + sw('#f87171', 'Above threshold') +
+        sw('#3d4d6d', 'No quality sensor');
+    } else if (MAP_METRIC === 'temp') {
+      L.innerHTML = sw('rgb(56,160,230)', 'Cold') + sw('rgb(150,120,155)', 'Mild') + sw('rgb(246,70,80)', 'Warm') +
+        sw('#3d4d6d', 'No sensor');
+    } else if (MAP_METRIC === 'flow') {
+      L.innerHTML = sw('rgb(120,200,255)', 'Lower flow') + sw('rgb(24,140,215)', 'Higher flow') +
+        '<span>Marker size scales with discharge</span>';
+    } else {
+      L.innerHTML = sw('#38bdf8', 'Gauge reading') + '<span>Reservoirs show pool elevation; rivers show stage</span>';
+    }
+    L.innerHTML += '<span class="dim">Geometry © OpenStreetMap contributors</span>';
+  }
+
+  function showStation(id, hover) {
+    const side = $('#mapDetail');
+    if (!side) return;
+    if (!id) {
+      side.innerHTML = '<p class="hint">Select a station on the map to see everything that gauge is reporting.</p>';
+      return;
+    }
+    const s = SITE[id];
+    const rows = [];
+    const add = (label, code, fmtFn, unit) => {
+      const r = get(id, code);
+      if (!r) return;
+      rows.push(`<tr><td class="name">${esc(label)}</td><td>${fmtFn(r.latest)}${unit ? ' ' + unit : ''}</td></tr>`);
+    };
+    add('Streamflow', P.flow, v => F(v, 0), 'cfs');
+    add(s.type === 'lake' ? 'Pool elevation' : 'Stage', s.type === 'lake' ? P.elev : P.stage, v => F(v, 2), 'ft');
+    add('Storage', P.storage, v => F(v, 0), 'kaf');
+    add('Water temp', P.wtemp, v => F(cToF(v), 1), '°F');
+    add('Dissolved oxygen', P.do, v => F(v, 1), 'mg/L');
+    add('pH', P.ph, v => F(v, 1), '');
+    add('Turbidity', P.turb, v => F(v, 1), 'FNU');
+    add('E. coli', P.ecoli, v => F(v, 0), 'cfu/100mL');
+    add('Conductance', P.spc, v => F(v, 0), 'µS/cm');
+    add('Air temp', P.atemp, v => F(cToF(v), 1), '°F');
+    add('Wind', P.wind, v => F(v, 1), 'mph');
+
+    const primary = get(id, P.flow) || get(id, P.elev) || get(id, P.stage);
+    const d24 = primary ? trend(primary.points, 24) : null;
+    const upd = primary ? ago(primary.at) : '';
+
+    side.innerHTML = `
+      <h4>${esc(s.name)}</h4>
+      <p class="sloc">${esc(s.sub)}</p>
+      ${rows.length ? `<table>${rows.join('')}</table>` : '<p class="hint">This gauge is not reporting right now.</p>'}
+      ${primary ? `<p class="sloc" style="margin:12px 0 0">24-hour change ${arrow(d24, get(id, P.flow) ? 0 : 2, get(id, P.flow) ? 'cfs' : 'ft')}
+        · updated ${esc(upd)}</p>` : ''}
+      <p class="sloc" style="margin-top:10px">
+        <a href="https://waterdata.usgs.gov/monitoring-location/${esc(id)}/" target="_blank" rel="noopener">USGS ${esc(id)} ↗</a></p>`;
+  }
+
   function renderRiver() {
     const rows = STATIONS.map(s => {
       const flow = get(s.id, P.flow), stage = get(s.id, P.stage);
@@ -645,12 +930,15 @@
   function loadAll() {
     $('#updated').textContent = 'Refreshing…';
     const water = loadWater().then(() => {
-      renderLake(); renderRiver(); renderQuality(); renderBasinRain();
+      renderLake(); renderRiver(); renderQuality(); renderBasinRain(); renderMap();
     }).catch(e => {
       console.error(e);
       ['#lakeHero', '#riverProfile', '#qualityVerdict'].forEach(s =>
         err(s, 'Could not reach the USGS water service. It may be briefly down — try Refresh.'));
     });
+
+    const geo = loadGeo().then(renderMap)
+      .catch(e => { console.error(e); err('#riverMap', 'Map geometry could not be loaded.'); });
 
     const weather = loadWeather().then(renderWeather)
       .catch(e => { console.error(e); err('#nowWx', 'Weather services are unavailable.'); });
@@ -658,8 +946,16 @@
     const rain = (DATA.rain ? Promise.resolve() : loadRain()).then(renderRain)
       .catch(e => { console.error(e); err('#rainVerdict', 'Rainfall climatology could not be loaded.'); });
 
-    return Promise.all([water, weather, rain]).then(() => setUpdated(true));
+    return Promise.all([water, weather, rain, geo]).then(() => setUpdated(true));
   }
+
+  // metric selector for the river map
+  $$('#metricBar .mbtn').forEach(b => b.addEventListener('click', () => {
+    $$('#metricBar .mbtn').forEach(o => o.classList.remove('active'));
+    b.classList.add('active');
+    MAP_METRIC = b.dataset.metric;
+    renderMap();
+  }));
 
   // tabs
   $$('.tab').forEach(t => t.addEventListener('click', () => {

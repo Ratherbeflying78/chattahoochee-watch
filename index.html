@@ -63,14 +63,30 @@
   <!-- ================= RIVER ================= -->
   <section class="panel" id="panel-river">
     <div class="card">
-      <h3>The corridor, top to bottom</h3>
-      <p class="cap">Every active USGS gauge on the Chattahoochee mainstem from Buford Dam through Atlanta to West Point,
-        ordered downstream. Flow generally grows as tributaries join.</p>
+      <h3>The river, mapped</h3>
+      <p class="cap">Real Chattahoochee geometry from Buford Dam to West Point, with every active gauge in place.
+        Pick a metric, then hover or tap any station to read it.</p>
+      <div class="metricbar" id="metricBar">
+        <button class="mbtn active" data-metric="flow">Streamflow</button>
+        <button class="mbtn" data-metric="level">Stage / pool</button>
+        <button class="mbtn" data-metric="temp">Water temp</button>
+        <button class="mbtn" data-metric="quality">Water quality</button>
+      </div>
+      <div class="maplayout">
+        <div class="mapbox" id="riverMap"><div class="skel h">Loading map…</div></div>
+        <aside class="mapside" id="mapDetail"></aside>
+      </div>
+      <div class="legend" id="mapLegend"></div>
+    </div>
+
+    <div class="card">
+      <h3>Every gauge, downstream order</h3>
+      <p class="cap">Flow generally grows as tributaries join. Highlighted row is West Point Lake.</p>
       <div id="riverProfile"><div class="skel">Loading gauges…</div></div>
     </div>
     <div class="card">
       <h3>Streamflow — last 7 days</h3>
-      <p class="cap">Normalized hydrographs. Rising lines upstream today usually mean rising water at West Point in 1–3 days.</p>
+      <p class="cap">Rising lines upstream today usually mean rising water at West Point in 1–3 days.</p>
       <div class="chips" id="flowChips"></div>
       <div id="flowChart" class="chartbox"><div class="skel">Loading…</div></div>
     </div>
@@ -194,7 +210,8 @@
     <p><b>Sources.</b> Water levels, streamflow and water quality: <a href="https://waterservices.usgs.gov/" target="_blank" rel="noopener">USGS National Water Information System</a> (instantaneous values, updated every 15–60 minutes).
       Forecast: <a href="https://www.weather.gov/ffc/" target="_blank" rel="noopener">NOAA / National Weather Service Peachtree City</a>.
       Precipitation history and forecast: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> (ERA5 reanalysis + operational models).
-      Camera stills: <a href="https://511ga.org/map" target="_blank" rel="noopener">Georgia DOT / 511GA</a>.</p>
+      Camera stills: <a href="https://511ga.org/map" target="_blank" rel="noopener">Georgia DOT / 511GA</a>.
+      River and lake map geometry: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors, ODbL.</p>
     <p><b>Caveats.</b> These are provisional, unreviewed sensor readings and may contain errors or gaps. The USACE guide curve
       shown for West Point Lake is approximate and reconstructed for reference — consult the
       <a href="https://water.sam.usace.army.mil/" target="_blank" rel="noopener">Mobile District</a> for official lake operations.

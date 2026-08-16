@@ -11,7 +11,7 @@ in a single view — no account, no API key, no backend server.
 | Tab | Contents |
 |---|---|
 | **Lake Now** | West Point Lake pool elevation against the seasonal guide curve, 24-hour and 7-day change, storage, the inflow/outflow water budget, and upstream Lake Lanier storage. |
-| **River Profile** | Every active USGS gauge on the mainstem in downstream order, with flow, stage, water temperature and 24-hour trend, plus 7-day hydrographs. |
+| **River Profile** | An interactive map of the real river — geographically accurate centerline and lake shorelines from OpenStreetMap — with every active gauge plotted in place. Switch between streamflow, stage/pool, water temperature and water quality; markers recolor and resize, and clicking one opens every reading that gauge reports. Below it, the same gauges as a downstream-ordered table plus 7-day hydrographs. |
 | **Water Quality** | Live E. coli estimates (USGS BacteriALERT) at Atlanta and Norcross against the 235 cfu/100 mL contact-recreation threshold, turbidity, dissolved oxygen and pH. |
 | **Weather** | Current conditions, the NWS 7-day forecast for LaGrange, a 10-day rain outlook, 7-day basin rainfall totals, and on-the-water station readings. |
 | **Cameras** | Public GDOT / 511GA traffic camera stills at Chattahoochee crossings, refreshing every 60 seconds. |
@@ -29,6 +29,7 @@ rather than being as stale as the last build.
 | [NWS / api.weather.gov](https://api.weather.gov/) | 7-day narrative forecast | every 15 min in-page |
 | [Open-Meteo](https://open-meteo.com/) | Current conditions, 10-day rain outlook, ERA5 rainfall history | every 15 min in-page |
 | [511GA / GDOT](https://511ga.org/map) | Traffic camera stills | every 60 s while visible |
+| [OpenStreetMap](https://www.openstreetmap.org/copyright) via Overpass | River centerline and lake shorelines for the interactive map | static, regenerated on demand |
 
 Two scheduled jobs keep the derived data fresh:
 
@@ -39,6 +40,12 @@ Two scheduled jobs keep the derived data fresh:
 
 Both run twice daily via `.github/workflows/update.yml`, which commits any changes and
 redeploys the site to GitHub Pages.
+
+`scripts/build_geo.py` is run manually, not on a schedule. It queries the Overpass API for the
+Chattahoochee centerline and the West Point Lake and Lake Lanier shorelines, stitches the
+unordered OSM multipolygon members into closed rings, simplifies them, and writes
+`data/geo.json` (~79 KB). The geometry does not change, so there is no reason to hammer
+Overpass on a cron.
 
 ## Running locally
 
