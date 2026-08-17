@@ -1004,7 +1004,9 @@
       });
   }
 
-  function renderReachMap() {
+  /* Hand-drawn fallback. Only used if the map library fails to load — it has
+     no roads or tributaries, but it keeps the card useful rather than empty. */
+  function renderReachSVG() {
     const box = $('#reachMap'), listBox = $('#reachList');
     if (!box || !listBox) return;
     const sites = reachSites();
@@ -1116,7 +1118,7 @@
 
     const select = key => {
       REACH_SEL = REACH_SEL === key ? null : key;
-      renderReachMap();
+      renderReachSVG();
       const row = listBox.querySelector('.rl.sel');
       if (row && row.scrollIntoView) row.scrollIntoView({ block: 'nearest' });
     };
@@ -1153,6 +1155,15 @@
     box.innerHTML = '';
     box.appendChild(svg);
 
+    renderReachList(sites, select);
+    $('#reachNote').innerHTML = reachNoteHTML(sites,
+      `Only the Chattahoochee itself is drawn, so a square sitting away from blue water is a creek being sampled
+       before it reaches the lake. Triangles are the USGS gauges that feed the rest of this dashboard.`);
+  }
+
+  /* The list beside the map. Shared by both renderers so the two always agree. */
+  function renderReachList(sites, onSelect) {
+    const listBox = $('#reachList');
     listBox.innerHTML = sites.map(s => {
       const last = crkLatest(s);
       const j = judge(P.ecoli, last.ec) || { cls: 'dim', note: '' };
@@ -1168,19 +1179,162 @@
         <span class="rlval ${j.cls}">${last.ec <= CRK_FLOOR ? '&lt;' + CRK_FLOOR : F(last.ec, 0)}</span>
       </button>`;
     }).join('');
-    $$('#reachList .rl').forEach(b => b.addEventListener('click', () => select(b.dataset.key)));
+    $$('#reachList .rl').forEach(b => b.addEventListener('click', () => onSelect(b.dataset.key)));
+  }
 
+  function reachNoteHTML(sites, tail) {
     const fresh = sites.filter(s => !s.stale);
     const bad = fresh.filter(s => crkLatest(s).ec >= ECOLI_THRESHOLD).length;
     const stale = sites.length - fresh.length;
     const lakeN = sites.filter(s => !s.creek).length;
-    $('#reachNote').innerHTML = `${sites.length} Riverkeeper sites in this reach — ${lakeN} on the river and lake
+    return `${sites.length} Riverkeeper sites in this reach — ${lakeN} on the river and lake
       (circles) and ${sites.length - lakeN} on feeder creeks (squares). Of the ${fresh.length} sampled in the last
       ${STALE_DAYS} days, ${bad ? `<b>${bad}</b> came back at or above` : 'none reached'} the 235 MPN/100 mL contact
       limit.${stale ? ` ${stale} site${stale > 1 ? 's are' : ' is'} drawn faded because ${stale > 1 ? 'their' : 'its'}
-      last result is older than that — historical, not current.` : ''}
-      Only the Chattahoochee itself is drawn, so a square sitting away from blue water is a creek being sampled
-      before it reaches the lake. Triangles are the USGS gauges that feed the rest of this dashboard.`;
+      last result is older than that — historical, not current.` : ''} ${tail}`;
+  }
+
+  /* ---------------------------------------------------------- slippy map */
+  let RMAP = null, RLAYER = null, RGAUGES = null, RMARK = {};
+
+  function siteIcon(s) {
+    const last = crkLatest(s);
+    const j = judge(P.ecoli, last.ec) || { cls: 'dim' };
+    const sel = REACH_SEL === s.key;
+    return L.divIcon({
+      className: '',
+      html: `<span class="rmk ${j.cls}${s.creek ? ' creek' : ''}${s.stale ? ' stale' : ''}${sel ? ' sel' : ''}">${s.no}</span>`,
+      iconSize: [24, 24], iconAnchor: [12, 12], popupAnchor: [0, -13],
+    });
+  }
+
+  function sitePopup(s) {
+    const last = crkLatest(s);
+    const j = judge(P.ecoli, last.ec) || { cls: 'dim', note: '' };
+    const val = last.ec <= CRK_FLOOR ? '&lt;' + CRK_FLOOR : F(last.ec, 0);
+    return `<div class="rpop">
+      <div class="rpopname">${s.no}. ${esc(s.name)}</div>
+      <div class="rpopval ${j.cls}">${val} <span>MPN/100 mL</span></div>
+      <div class="rpopmeta">${esc(last.d)}${s.creek ? ' · feeder creek' : ' · river or lake'}${
+        s.stale ? ` · <b class="staletag">${s.age} days old</b>` : ''}</div>
+      <div class="rpopnote ${j.cls}">${esc(j.note)}</div>
+      ${crkSpark(s.readings)}
+    </div>`;
+  }
+
+  function renderReachMap() {
+    const box = $('#reachMap');
+    if (!box || !$('#reachList')) return;
+    if (!window.L) return renderReachSVG();          // library missing — fall back
+    const sites = reachSites();
+    if (!sites.length) { box.innerHTML = '<div class="err">No Riverkeeper sites in this reach.</div>'; return; }
+
+    if (!RMAP) {
+      box.classList.add('slippy');
+      box.innerHTML = '';
+      RMAP = L.map(box, { scrollWheelZoom: false, zoomSnap: 0.5 });
+      // Scroll-wheel zoom is off by default so the page still scrolls past the
+      // map; ctrl+wheel and the buttons zoom, same as most embedded maps.
+      RMAP.on('focus', () => RMAP.scrollWheelZoom.enable());
+      RMAP.on('blur', () => RMAP.scrollWheelZoom.disable());
+
+      const att = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+      const dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+        { attribution: att + ' &copy; <a href="https://carto.com/attributions">CARTO</a>', maxZoom: 19 });
+      const street = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+        { attribution: att + ' &copy; <a href="https://carto.com/attributions">CARTO</a>', maxZoom: 19 });
+      const sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        { attribution: 'Imagery &copy; Esri, Maxar, Earthstar Geographics', maxZoom: 18 });
+      // Streets is the default: on a dark basemap the lake and its feeder creeks
+      // are nearly invisible, and creek and road names are the point of this map.
+      street.addTo(RMAP);
+      RLAYER = L.layerGroup().addTo(RMAP);
+      RGAUGES = L.layerGroup().addTo(RMAP);
+
+      L.control.layers(
+        { 'Streets & labels': street, 'Dark': dark, 'Satellite': sat },
+        { 'Sampling sites': RLAYER, 'USGS gauges': RGAUGES },
+        { position: 'topright' }
+      ).addTo(RMAP);
+      L.control.scale({ imperial: true, metric: true, position: 'bottomleft' }).addTo(RMAP);
+
+      const Reset = L.Control.extend({
+        options: { position: 'topleft' },
+        onAdd: function () {
+          const a = L.DomUtil.create('a', 'rreset');
+          a.href = '#'; a.title = 'Zoom back to the whole reach'; a.textContent = 'Reset';
+          L.DomEvent.on(a, 'click', e => { L.DomEvent.stop(e); fitReach(); });
+          return a;
+        },
+      });
+      RMAP.addControl(new Reset());
+    }
+
+    RLAYER.clearLayers();
+    RGAUGES.clearLayers();
+    RMARK = {};
+
+    const select = key => {
+      REACH_SEL = REACH_SEL === key ? null : key;
+      const site = sites.find(x => x.key === REACH_SEL);
+      sites.forEach(s => { if (RMARK[s.key]) RMARK[s.key].setIcon(siteIcon(s)); });
+      renderReachList(sites, select);
+      const row = $('#reachList .rl.sel');
+      if (row && row.scrollIntoView) row.scrollIntoView({ block: 'nearest' });
+      if (site && RMARK[site.key]) {
+        if (!RMAP.getBounds().contains(RMARK[site.key].getLatLng())) RMAP.panTo(RMARK[site.key].getLatLng());
+        RMARK[site.key].openPopup();
+      } else {
+        RMAP.closePopup();
+      }
+    };
+
+    sites.forEach(s => {
+      const m = L.marker([s.lat, s.lon], { icon: siteIcon(s), title: `${s.no}. ${s.name}`, riseOnHover: true })
+        .bindPopup(sitePopup(s), { className: 'rpopwrap', maxWidth: 300 });
+      m.on('click', () => { if (REACH_SEL !== s.key) select(s.key); });
+      m.addTo(RLAYER);
+      RMARK[s.key] = m;
+    });
+
+    // The pool and tailwater gauges sit metres apart at the dam, so they would
+    // overlap at every zoom level. Merge them into one pin.
+    const seen = {};
+    STATIONS.filter(g => g.lat >= REACH.s && g.lat <= REACH.n && g.lon >= REACH.w && g.lon <= REACH.e)
+      .forEach(g => {
+        const k = g.lat.toFixed(2) + ',' + g.lon.toFixed(2);
+        if (seen[k]) { seen[k].push(g); return; }
+        seen[k] = [g];
+        L.marker([g.lat, g.lon], {
+          icon: L.divIcon({ className: '', iconSize: [16, 16], iconAnchor: [8, 8], popupAnchor: [0, -9],
+            html: '<span class="rgauge"></span>' }),
+          title: 'USGS gauge — ' + g.name,
+        }).bindPopup(() => `<div class="rpop">
+          <div class="rpopname">${esc(seen[k].map(x => x.name).join(' / '))}</div>
+          ${seen[k].map(x => `<div class="rpopmeta">USGS ${esc(x.id)} · ${esc(x.sub)}</div>`).join('')}
+          <div class="rpopnote">Feeds the level and flow readings on the other tabs.</div></div>`,
+          { className: 'rpopwrap' }).addTo(RGAUGES);
+      });
+
+    if (!RMAP._fitted) { fitReach(); RMAP._fitted = true; }
+    renderReachList(sites, select);
+    $('#reachNote').innerHTML = reachNoteHTML(sites,
+      `Drag to pan and use the buttons — or ctrl and the scroll wheel — to zoom in on any creek mouth or boat ramp.
+       Switch to <b>Dark</b> to match the rest of the page or <b>Satellite</b> to see the shoreline itself.
+       Triangles are the USGS gauges that feed the rest of this dashboard.`);
+  }
+
+  function fitReach() {
+    if (!RMAP) return;
+    const sites = reachSites();
+    const b = L.latLngBounds(sites.map(s => [s.lat, s.lon]));
+    b.extend([REACH.s + 0.01, -85.19]);            // keep the dam in frame
+    RMAP.fitBounds(b, { padding: [24, 24] });
+  }
+
+  /* A map built while its tab is hidden has no size. Re-measure when shown. */
+  function resizeReachMap() {
+    if (RMAP) setTimeout(() => RMAP.invalidateSize(), 60);
   }
 
   /* =====================================================================
@@ -1545,8 +1699,11 @@
     const p = document.getElementById('panel-' + t.dataset.panel);
     if (p) p.classList.add('active');
     if (t.dataset.panel === 'cams') renderCams();
+    if (t.dataset.panel === 'quality') resizeReachMap();
     if (location.hash !== '#' + t.dataset.panel) history.replaceState(null, '', '#' + t.dataset.panel);
   }));
+
+  addEventListener('resize', resizeReachMap);
 
   if (location.hash) {
     const t = $$('.tab').find(x => '#' + x.dataset.panel === location.hash);

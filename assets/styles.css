@@ -257,7 +257,7 @@ table.crk td.spk{padding:4px 10px;width:1%}
 @media(max-width:860px){.reachlayout{grid-template-columns:1fr}}
 #reachMap{display:grid;place-items:center}
 #reachMap svg{width:100%;height:auto;max-height:780px;display:block;border-radius:10px}
-.reachlist{max-height:780px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;padding-right:4px}
+.reachlist{max-height:620px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;padding-right:4px}
 .rl{display:flex;align-items:flex-start;gap:9px;width:100%;text-align:left;cursor:pointer;
   background:#0e1a2f;border:1px solid #1b2942;border-left:3px solid var(--dim2);
   border-radius:8px;padding:7px 10px;color:var(--ink);font:inherit;font-size:13px}
@@ -292,3 +292,51 @@ table.crk td.spk{padding:4px 10px;width:1%}
 .rl.stale{opacity:.72}
 .staletag{color:var(--dim);font-weight:600}
 
+
+/* ---- reach map: slippy version ------------------------------------- */
+#reachMap.slippy { display:block; height:620px; max-height:none; padding:0;
+  background:#0a1424; border:1px solid #1e2f4a; border-radius:10px; }
+#reachMap.slippy .leaflet-container { background:#0a1424; font:inherit; height:100%; border-radius:10px; }
+.leaflet-container a { color:#7dd3fc; }
+
+/* numbered site markers — round for river and lake, square for creeks */
+.rmk { display:flex; align-items:center; justify-content:center;
+  width:24px; height:24px; border-radius:50%; font-size:11px; font-weight:700;
+  color:#04101f; background:#7c8aa0; border:2px solid rgba(4,16,31,.75);
+  box-shadow:0 1px 4px rgba(0,0,0,.6); cursor:pointer; }
+.rmk.creek { border-radius:5px; }
+.rmk.good { background:#4ade80; }
+.rmk.warn { background:#fbbf24; }
+.rmk.bad  { background:#f87171; }
+.rmk.stale { opacity:.5; border-style:dashed; }
+.rmk.sel { outline:3px solid #7dd3fc; outline-offset:1px; transform:scale(1.15); }
+.rgauge { display:block; width:0; height:0; border-left:7px solid transparent;
+  border-right:7px solid transparent; border-bottom:12px solid #7dd3fc;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.8)); }
+
+/* dark popups and controls */
+.rpopwrap .leaflet-popup-content-wrapper { background:#12213a; color:#dbe7f5;
+  border:1px solid #2a4368; border-radius:10px; }
+.rpopwrap .leaflet-popup-content { margin:10px 12px; }
+.rpopwrap .leaflet-popup-tip { background:#12213a; }
+.rpopwrap a.leaflet-popup-close-button { color:#8fa6c2; }
+.rpopname { font-weight:600; margin-bottom:4px; }
+.rpopval { font-size:22px; font-weight:700; }
+.rpopval span { font-size:11px; font-weight:400; color:#8fa6c2; }
+.rpopmeta { font-size:11px; color:#8fa6c2; margin-top:2px; }
+.rpopnote { font-size:12px; margin-top:6px; }
+.rpop .spark { margin-top:8px; }
+.leaflet-bar a, .leaflet-control-layers, .rreset { background:#12213a !important;
+  color:#dbe7f5 !important; border-color:#2a4368 !important; }
+.leaflet-bar a:hover { background:#1b2f4d !important; }
+.rreset { display:block; padding:0 8px; line-height:26px; font-size:11px;
+  text-decoration:none; border-radius:4px; border:1px solid #2a4368;
+  box-shadow:0 1px 4px rgba(0,0,0,.4); }
+.leaflet-control-layers-expanded { color:#dbe7f5; padding:8px 10px; }
+.leaflet-control-attribution { background:rgba(10,20,36,.8) !important; color:#8fa6c2 !important; font-size:10px; }
+.leaflet-control-scale-line { background:rgba(10,20,36,.7); color:#dbe7f5; border-color:#8fa6c2; }
+
+/* The generic "svg fills the map box" rule must not touch Leaflet's own SVG —
+   it was stretching the tiny attribution flag to a quarter of the map. */
+#reachMap.slippy svg { width:auto; height:auto; max-height:none; }
+.leaflet-attribution-flag { width:12px !important; height:8px !important; display:inline-block !important; }
