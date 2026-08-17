@@ -87,8 +87,15 @@ No build step and no dependencies beyond the Python standard library.
   flow, not laboratory culture results.
 - The rainfall baseline is 11 years. The WMO uses 30 years for climate normals, so treat
   anomalies within about one standard deviation as ordinary weather variability.
-- Cameras are **roadway** cameras operated by GDOT, not scenic river cams, and individual
-  cameras frequently return an "image unavailable" placeholder.
+- **West Point is a peaking hydropower dam.** Its release swings from a few hundred cfs
+  overnight to roughly 9,000 cfs while generating, so the water budget uses **24-hour mean**
+  flows, not instantaneous readings. An instantaneous outflow taken at the wrong hour will
+  invert the apparent sign of the lake's water balance. The budget is cross-checked against
+  the reservoir's own reported storage change as an independent measure.
+- Cameras: the **USGS river cameras** shoot every 15 minutes in daylight only, so overnight
+  frames are dark and timestamped hours behind. The **GDOT roadway cameras** are traffic
+  cameras, not scenic river cams, and individual cameras frequently return an
+  "image unavailable" placeholder.
 - **Nothing here is an official advisory.** For flood, navigation or public-health decisions,
   use NWS, USACE and Georgia EPD directly.
 

@@ -163,6 +163,21 @@ svg.chart{width:100%;height:auto;display:block;overflow:visible}
 .mapside table{font-size:13px}
 .mapside td{padding:6px 4px}
 .mapside .hint{color:var(--dim);font-size:13px;line-height:1.6}
+.readings{width:100%;border-collapse:collapse}
+.readings td{padding:6px 4px;vertical-align:baseline}
+.readings td.name{color:var(--dim);white-space:nowrap}
+.readings td.v{text-align:right;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.readings td.t{text-align:right;font-size:11.5px;white-space:nowrap;padding-left:8px}
+.readings td.v.good{color:var(--good)}
+.readings td.v.warn{color:var(--warn)}
+.readings td.v.bad{color:var(--bad)}
+.readings tr.j-good,.readings tr.j-warn,.readings tr.j-bad{border-left:3px solid transparent}
+.readings tr.j-good{border-left-color:var(--good)}
+.readings tr.j-warn{border-left-color:var(--warn)}
+.readings tr.j-bad{border-left-color:var(--bad)}
+.readings tr.jnote td{padding:0 4px 8px;font-size:11px;color:var(--dim);line-height:1.4}
+.readings tr.jnote.j-bad td{color:#fca5a5}
+.readings tr.jnote.j-warn td{color:#fcd77f}
 .scalebar{stroke:#6d82a8;stroke-width:1.4}
 .scaletxt{fill:#6d82a8;font-size:9.5px}
 

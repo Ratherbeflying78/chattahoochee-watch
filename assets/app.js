@@ -113,6 +113,24 @@
     return last.v - ref.v;
   }
 
+  // Mean of a record's readings over the last N hours. Essential for peaking
+  // hydropower releases, where the instantaneous value is close to meaningless.
+  function mean24(rec, hours) {
+    if (!rec || !rec.points || !rec.points.length) return null;
+    const cutoff = +rec.points[rec.points.length - 1].t - (hours || 24) * 3600000;
+    const vs = rec.points.filter(p => +p.t >= cutoff && isFinite(p.v)).map(p => p.v);
+    if (!vs.length) return null;
+    return vs.reduce((a, b) => a + b, 0) / vs.length;
+  }
+
+  function range24(rec, hours) {
+    if (!rec || !rec.points || !rec.points.length) return null;
+    const cutoff = +rec.points[rec.points.length - 1].t - (hours || 24) * 3600000;
+    const vs = rec.points.filter(p => +p.t >= cutoff && isFinite(p.v)).map(p => p.v);
+    if (!vs.length) return null;
+    return { min: Math.min.apply(null, vs), max: Math.max.apply(null, vs) };
+  }
+
   function arrow(d, dp, unit) {
     if (d === null || !isFinite(d)) return '<span class="na">—</span>';
     const eps = Math.pow(10, -(dp === undefined ? 2 : dp)) * 5;
@@ -195,15 +213,24 @@
       </div>`;
 
     const stor = get('02339400', P.storage);
+    const outRec = get('02339500', P.flow);
+    const inRec = get('02338500', P.flow);
     const outflow = val('02339500', P.flow);
     const inflow = val('02338500', P.flow);
+
+    // West Point is a peaking hydropower dam: instantaneous release swings from a few
+    // hundred cfs overnight to several thousand while generating. Only a 24-hour mean
+    // is meaningful in a water budget.
+    const outMean = mean24(outRec, 24), inMean = mean24(inRec, 24);
+    const outRange = range24(outRec, 24);
 
     const kpis = [
       { lbl: 'Change, 24 hours', big: (d24 === null ? '—' : (d24 >= 0 ? '+' : '') + F(d24, 2) + ' ft'), note: 'pool elevation', cls: '' },
       { lbl: 'Change, 7 days', big: (d7 === null ? '—' : (d7 >= 0 ? '+' : '') + F(d7, 2) + ' ft'), note: 'pool elevation', cls: '' },
       { lbl: 'Storage', big: stor ? F(stor.latest, 0) + ' kaf' : '—', note: 'thousand acre-feet', cls: '' },
-      { lbl: 'Inflow at Franklin', big: inflow !== null ? F(inflow, 0) : '—', note: 'cubic feet per second', cls: '' },
-      { lbl: 'Outflow at West Point', big: outflow !== null ? F(outflow, 0) : '—', note: 'cubic feet per second', cls: '' }
+      { lbl: 'Inflow at Franklin', big: inMean !== null ? F(inMean, 0) : '—', note: 'cfs, 24-hour average', cls: '' },
+      { lbl: 'Outflow at West Point', big: outMean !== null ? F(outMean, 0) : '—',
+        note: outflow !== null ? 'cfs 24-hr avg · ' + F(outflow, 0) + ' right now' : 'cfs, 24-hour average', cls: '' }
     ];
     $('#lakeKpis').innerHTML = kpis.map(k =>
       `<div class="kpi ${k.cls}"><div class="lbl">${esc(k.lbl)}</div>
@@ -216,23 +243,42 @@
       { name: 'Pool elevation', color: '#38bdf8', points: elev.points, fill: true }
     ], { yDp: 1, unit: 'ft', height: 300 });
 
-    // water budget
-    if (inflow !== null && outflow !== null) {
-      const net = inflow - outflow;
+    // Water budget, computed from 24-hour means and cross-checked against the
+    // reservoir's own reported storage change.
+    if (inMean !== null && outMean !== null) {
+      const net = inMean - outMean;
       const cfsToAfDay = 1.98347;
+      const dStor = stor ? trend(stor.points, 24) : null;          // thousand acre-feet
+      const storCfs = dStor === null ? null : (dStor * 1000) / cfsToAfDay;
+      const agree = storCfs !== null && net !== 0 &&
+        Math.sign(storCfs) === Math.sign(net) &&
+        Math.abs(storCfs - net) / Math.max(Math.abs(storCfs), Math.abs(net)) < 0.35;
+
       $('#budget').innerHTML = `
         <table>
-          <tr><td class="name">Inflow — Franklin</td><td>${F(inflow, 0)} cfs</td></tr>
-          <tr><td class="name">Outflow — below dam</td><td>${F(outflow, 0)} cfs</td></tr>
+          <tr><td class="name">Inflow — Franklin</td><td>${F(inMean, 0)} cfs</td></tr>
+          <tr><td class="name">Outflow — at West Point</td><td>${F(outMean, 0)} cfs</td></tr>
           <tr class="hl"><td class="name">Net balance</td>
             <td class="${net > 0 ? 'up' : 'down'}">${net >= 0 ? '+' : ''}${F(net, 0)} cfs</td></tr>
           <tr><td class="name dim">Equivalent daily volume</td>
             <td class="dim">${net >= 0 ? '+' : ''}${F(net * cfsToAfDay, 0)} acre-ft/day</td></tr>
+          ${storCfs !== null ? `<tr><td class="name dim">Cross-check — measured storage change</td>
+            <td class="dim">${storCfs >= 0 ? '+' : ''}${F(storCfs, 0)} cfs equivalent</td></tr>` : ''}
         </table>
-        <p class="cap" style="margin-top:12px">${net > 0
+        <p class="cap" style="margin-top:12px">
+          <b>All figures are 24-hour averages.</b> West Point is a peaking hydropower dam —
+          ${outRange ? `in the last 24 hours the release ranged from <b>${F(outRange.min, 0)}</b> to
+            <b>${F(outRange.max, 0)} cfs</b>` : 'its release swings widely through the day'},
+          so a single instantaneous reading says almost nothing about the daily balance.</p>
+        <p class="cap">${net > 0
           ? 'More water is arriving than leaving, so the pool should be rising.'
-          : 'More water is leaving than arriving, so the pool should be falling.'}
-          Franklin measures only the mainstem — tributaries like Yellowjacket Creek add ungauged inflow.</p>`;
+          : 'More water is leaving than arriving, so the pool is being drawn down.'}
+          ${storCfs !== null ? (agree
+            ? 'The lake\u2019s own reported storage change agrees, which is a good sign both gauges are behaving.'
+            : 'Note that this does not match the reported storage change — treat both as provisional. ' +
+              'Franklin measures only the mainstem, so ungauged tributaries such as Yellowjacket Creek, ' +
+              'plus evaporation, show up as a discrepancy.')
+          : 'Franklin measures only the mainstem — tributaries like Yellowjacket Creek add ungauged inflow.'}</p>`;
     } else {
       $('#budget').innerHTML = '<div class="err">Inflow or outflow gauge is not reporting.</div>';
     }
@@ -278,6 +324,24 @@
   };
 
   // Value for a station under the active metric.
+  // 24-hour change for a station under the active metric, in the metric's own units.
+  function metricTrend(st, metric, m) {
+    let rec = null, dp = 0, unit = '', scale = 1;
+    if (metric === 'flow') { rec = get(st.id, P.flow); dp = 0; unit = 'cfs'; }
+    else if (metric === 'level') {
+      rec = get(st.id, st.type === 'lake' ? P.elev : P.stage); dp = 2; unit = 'ft';
+    } else if (metric === 'temp') { rec = get(st.id, P.wtemp); dp = 1; unit = '°F'; scale = 1.8; }
+    else if (m) {
+      if (m.kind === 'ecoli') { rec = get(st.id, P.ecoli); dp = 0; unit = ''; }
+      else if (m.kind === 'do') { rec = get(st.id, P.do); dp = 1; unit = ''; }
+      else { rec = get(st.id, P.turb); dp = 1; unit = ''; }
+    }
+    if (!rec) return null;
+    const d = trend(rec.points, 24);
+    if (d === null || !isFinite(d)) return null;
+    return { d: d * scale, dp, unit };
+  }
+
   function metricValue(st, metric) {
     if (metric === 'flow') {
       const v = val(st.id, P.flow);
@@ -331,6 +395,36 @@
     if (metric === 'flow') return 5 + Math.min(9, Math.log10(Math.max(m.v, 1)) * 2.6);
     if (metric === 'quality' || metric === 'temp' || metric === 'level') return 7;
     return 6;
+  }
+
+  // Is a reading good, borderline or bad? Thresholds are Georgia / EPA water-quality
+  // standards where one exists, and descriptive bands where none does.
+  function judge(code, v) {
+    if (v === null || !isFinite(v)) return null;
+    switch (code) {
+      case P.ecoli:                                  // cfu/100 mL, contact recreation
+        if (v >= ECOLI_THRESHOLD) return { cls: 'bad', note: 'above the 235 single-sample limit' };
+        if (v >= 126) return { cls: 'warn', note: 'above the 126 geometric-mean limit' };
+        return { cls: 'good', note: 'below contact-recreation limits' };
+      case P.do:                                     // mg/L, higher is better
+        if (v < 4) return { cls: 'bad', note: 'below the 4.0 instantaneous minimum' };
+        if (v < DO_MIN) return { cls: 'warn', note: 'below the 5.0 daily-average standard' };
+        return { cls: 'good', note: 'meets the warm-water standard' };
+      case P.ph:                                     // Georgia standard 6.0–8.5
+        if (v < 6 || v > 8.5) return { cls: 'bad', note: 'outside the 6.0–8.5 standard' };
+        if (v < 6.3 || v > 8.2) return { cls: 'warn', note: 'near the edge of the 6.0–8.5 standard' };
+        return { cls: 'good', note: 'within the 6.0–8.5 standard' };
+      case P.turb:                                   // FNU, descriptive
+        if (v >= 50) return { cls: 'bad', note: 'muddy — heavy runoff' };
+        if (v >= 15) return { cls: 'warn', note: 'stained — recent runoff' };
+        return { cls: 'good', note: 'clear' };
+      case P.wtemp:                                  // °F, Georgia warm-water limit 90 °F
+        if (v > 90) return { cls: 'bad', note: 'above the 90 °F warm-water limit' };
+        if (v > 86) return { cls: 'warn', note: 'approaching the 90 °F limit' };
+        return { cls: 'good', note: 'normal' };
+      default:
+        return null;
+    }
   }
 
   function renderMap() {
@@ -448,9 +542,26 @@
       const n = mk('text', { x: tx.toFixed(1), y: (ly - 1).toFixed(1), 'text-anchor': anchor });
       n.textContent = s.name;
       lg.appendChild(n);
-      const v = mk('text', { x: tx.toFixed(1), y: (ly + 9).toFixed(1), 'text-anchor': anchor,
-        class: 'val', fill: color });
-      v.textContent = m ? m.txt : 'not reported';
+
+      const v = mk('text', { x: tx.toFixed(1), y: (ly + 9).toFixed(1), 'text-anchor': anchor, class: 'val' });
+      const tspan = (txt, fill, cls) => {
+        const t = mk('tspan', { fill: fill });
+        if (cls) t.setAttribute('class', cls);
+        t.textContent = txt;
+        return t;
+      };
+      v.appendChild(tspan(m ? m.txt : 'not reported', m ? color : '#5a6d92'));
+      const tr = m ? metricTrend(s, MAP_METRIC, m) : null;
+      if (tr) {
+        const eps = Math.pow(10, -tr.dp) * 5;
+        if (Math.abs(tr.d) < eps) {
+          v.appendChild(tspan('  steady', '#6d82a8'));
+        } else {
+          const up = tr.d > 0;
+          v.appendChild(tspan('  ' + (up ? '▲' : '▼') + ' ' + F(Math.abs(tr.d), tr.dp),
+            up ? '#4ade80' : '#fbbf24'));
+        }
+      }
       lg.appendChild(v);
 
       const ti = document.createElementNS(NS, 'title');
@@ -491,6 +602,7 @@
     } else {
       L.innerHTML = sw('#38bdf8', 'Gauge reading') + '<span>Reservoirs show pool elevation; rivers show stage</span>';
     }
+    L.innerHTML += '<span><b style="color:#4ade80">▲</b> rising / <b style="color:#fbbf24">▼</b> falling over 24 hours</span>';
     L.innerHTML += '<span class="dim">Geometry © OpenStreetMap contributors</span>';
   }
 
@@ -503,33 +615,52 @@
     }
     const s = SITE[id];
     const rows = [];
-    const add = (label, code, fmtFn, unit) => {
+    // label, param code, formatter, unit, judged (value already in display units), dp for trend
+    const add = (label, code, fmtFn, unit, opts) => {
       const r = get(id, code);
       if (!r) return;
-      rows.push(`<tr><td class="name">${esc(label)}</td><td>${fmtFn(r.latest)}${unit ? ' ' + unit : ''}</td></tr>`);
+      const o = opts || {};
+      const shown = o.conv ? o.conv(r.latest) : r.latest;
+      const j = judge(code, shown);
+      const d = trend(r.points, 24);
+      const dd = d === null || !isFinite(d) ? null : d * (o.scale || 1);
+      const dp = o.dp === undefined ? 1 : o.dp;
+      let tr = '';
+      if (dd !== null) {
+        const eps = Math.pow(10, -dp) * 5;
+        tr = Math.abs(dd) < eps ? '<span class="flat">steady</span>'
+          : `<span class="${dd > 0 ? 'up' : 'down'}">${dd > 0 ? '▲' : '▼'} ${F(Math.abs(dd), dp)}</span>`;
+      }
+      rows.push(
+        `<tr class="${j ? 'j-' + j.cls : ''}">
+           <td class="name">${esc(label)}</td>
+           <td class="v ${j ? j.cls : ''}">${fmtFn(r.latest)}${unit ? ' ' + unit : ''}</td>
+           <td class="t">${tr}</td>
+         </tr>` +
+        (j ? `<tr class="jnote j-${j.cls}"><td colspan="3">${esc(j.note)}</td></tr>` : ''));
     };
-    add('Streamflow', P.flow, v => F(v, 0), 'cfs');
-    add(s.type === 'lake' ? 'Pool elevation' : 'Stage', s.type === 'lake' ? P.elev : P.stage, v => F(v, 2), 'ft');
-    add('Storage', P.storage, v => F(v, 0), 'kaf');
-    add('Water temp', P.wtemp, v => F(cToF(v), 1), '°F');
-    add('Dissolved oxygen', P.do, v => F(v, 1), 'mg/L');
-    add('pH', P.ph, v => F(v, 1), '');
-    add('Turbidity', P.turb, v => F(v, 1), 'FNU');
-    add('E. coli', P.ecoli, v => F(v, 0), 'cfu/100mL');
-    add('Conductance', P.spc, v => F(v, 0), 'µS/cm');
-    add('Air temp', P.atemp, v => F(cToF(v), 1), '°F');
-    add('Wind', P.wind, v => F(v, 1), 'mph');
+    add('Streamflow', P.flow, v => F(v, 0), 'cfs', { dp: 0 });
+    add(s.type === 'lake' ? 'Pool elevation' : 'Stage', s.type === 'lake' ? P.elev : P.stage,
+      v => F(v, 2), 'ft', { dp: 2 });
+    add('Storage', P.storage, v => F(v, 0), 'kaf', { dp: 0 });
+    add('Water temp', P.wtemp, v => F(cToF(v), 1), '°F', { conv: cToF, scale: 1.8, dp: 1 });
+    add('Dissolved oxygen', P.do, v => F(v, 1), 'mg/L', { dp: 1 });
+    add('pH', P.ph, v => F(v, 1), '', { dp: 1 });
+    add('Turbidity', P.turb, v => F(v, 1), 'FNU', { dp: 1 });
+    add('E. coli', P.ecoli, v => F(v, 0), 'cfu/100mL', { dp: 0 });
+    add('Conductance', P.spc, v => F(v, 0), 'µS/cm', { dp: 0 });
+    add('Air temp', P.atemp, v => F(cToF(v), 1), '°F', { scale: 1.8, dp: 1 });
+    add('Wind', P.wind, v => F(v, 1), 'mph', { dp: 1 });
 
     const primary = get(id, P.flow) || get(id, P.elev) || get(id, P.stage);
-    const d24 = primary ? trend(primary.points, 24) : null;
     const upd = primary ? ago(primary.at) : '';
 
     side.innerHTML = `
       <h4>${esc(s.name)}</h4>
       <p class="sloc">${esc(s.sub)}</p>
-      ${rows.length ? `<table>${rows.join('')}</table>` : '<p class="hint">This gauge is not reporting right now.</p>'}
-      ${primary ? `<p class="sloc" style="margin:12px 0 0">24-hour change ${arrow(d24, get(id, P.flow) ? 0 : 2, get(id, P.flow) ? 'cfs' : 'ft')}
-        · updated ${esc(upd)}</p>` : ''}
+      ${rows.length ? `<table class="readings">${rows.join('')}</table>`
+        : '<p class="hint">This gauge is not reporting right now.</p>'}
+      ${primary ? `<p class="sloc" style="margin:12px 0 0">Change shown is over 24 hours · updated ${esc(upd)}</p>` : ''}
       <p class="sloc" style="margin-top:10px">
         <a href="https://waterdata.usgs.gov/monitoring-location/${esc(id)}/" target="_blank" rel="noopener">USGS ${esc(id)} ↗</a></p>`;
   }
