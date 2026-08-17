@@ -11,8 +11,8 @@ in a single view — no account, no API key, no backend server.
 | Tab | Contents |
 |---|---|
 | **Lake Now** | West Point Lake pool elevation against the seasonal guide curve, 24-hour and 7-day change, storage, the inflow/outflow water budget, and upstream Lake Lanier storage. |
-| **River Profile** | An interactive map of the real river — geographically accurate centerline and lake shorelines from OpenStreetMap — with every active gauge plotted in place. Switch between streamflow, stage/pool, water temperature and water quality; markers recolor and resize, and clicking one opens every reading that gauge reports. Below it, the same gauges as a downstream-ordered table plus 7-day hydrographs. |
-| **Water Quality** | Live E. coli estimates (USGS BacteriALERT) at Atlanta and Norcross against the 235 cfu/100 mL contact-recreation threshold, turbidity, dissolved oxygen and pH. |
+| **River Profile** | An interactive map of the real river — geographically accurate centerline and lake shorelines from OpenStreetMap — with every active gauge plotted in place. Switch between streamflow, stage/pool, water temperature and water quality; markers recolor and resize, and clicking one opens every reading that gauge reports. Below it, the same gauges as a downstream-ordered table plus a 7-day daily-average streamflow bar chart. |
+| **Water Quality** | Chattahoochee Riverkeeper's lab-cultured E. coli — the Swim Guide access points, every sampling site on West Point Lake, and the basin's worst results — alongside live USGS BacteriALERT estimates at Atlanta and Norcross against the 235 cfu/100 mL contact-recreation threshold, plus turbidity, dissolved oxygen and pH. |
 | **Weather** | Current conditions, the NWS 7-day forecast for LaGrange, a 10-day rain outlook, 7-day basin rainfall totals, and on-the-water station readings. |
 | **Cameras** | USGS streamgage cameras pointed at the water itself (Helen, Columbus, and basin tributaries), plus GDOT / 511GA roadway cameras at Chattahoochee crossings. |
 | **Rain vs Normal** | This year's rainfall at LaGrange compared month by month against the 2015–2025 baseline. |
@@ -30,16 +30,22 @@ rather than being as stale as the last build.
 | [Open-Meteo](https://open-meteo.com/) | Current conditions, 10-day rain outlook, ERA5 rainfall history | every 15 min in-page |
 | [511GA / GDOT](https://511ga.org/map) | Traffic camera stills | every 60 s while visible |
 | [USGS NIMS / HIVIS](https://apps.usgs.gov/hivis/) | River camera stills at streamgages | camera shoots every 15 min in daylight |
+| [Chattahoochee Riverkeeper](https://chattahoochee.org/) — [Neighborhood Water Watch](https://nww.chattahoochee.org/) and Swim Guide | Lab-cultured E. coli, turbidity and conductivity at ~190 volunteer sampling sites, and the summer Swim Guide advisory | weekly sampling; mirrored twice daily |
 | [OpenStreetMap](https://www.openstreetmap.org/copyright) via Overpass | River centerline and lake shorelines for the interactive map | static, regenerated on demand |
 
-Two scheduled jobs keep the derived data fresh:
+Three scheduled jobs keep the derived data fresh:
 
 - `scripts/build_climatology.py` rebuilds `data/rain-climatology.json`, the LaGrange rainfall
   baseline, from the full ERA5 record.
+- `scripts/build_crk.py` rebuilds `data/crk.json` from Chattahoochee Riverkeeper's public
+  Neighborhood Water Watch database and Swim Guide layer. Both are CORS-open and could be read
+  straight from the browser, but the site tree is ~380 KB and every station needs its own
+  follow-up request. Sampling is weekly, so resolving it here and shipping one ~130 KB file is
+  faster for visitors and survives CRK ever tightening their database rules.
 - `scripts/snapshot.py` appends one row per day to `data/history/daily.json`, preserving
   readings beyond the short window USGS serves.
 
-Both run twice daily via `.github/workflows/update.yml`, which commits any changes and
+All three run twice daily via `.github/workflows/update.yml`, which commits any changes and
 redeploys the site to GitHub Pages.
 
 `scripts/build_geo.py` is run manually, not on a schedule. It queries the Overpass API for the
@@ -84,7 +90,12 @@ No build step and no dependencies beyond the Python standard library.
   reconstructed** for reference. It is not an official USACE operating curve — consult the
   [Mobile District](https://water.sam.usace.army.mil/) for actual lake operations.
 - BacteriALERT E. coli figures are **continuous model estimates** derived from turbidity and
-  flow, not laboratory culture results.
+  flow, not laboratory culture results. Riverkeeper's Neighborhood Water Watch numbers on the
+  Water Quality tab *are* laboratory results, but they are **weekly grab samples** — each one
+  describes a single spot at a single moment, and bacteria spike for a day or two after heavy
+  rain. A value shown as `<50` means nothing was detected; 50 MPN/100 mL is CRK's reporting
+  floor, not a measurement. Neighborhood Water Watch is a volunteer programme and CRK does not
+  submit it to EPA's Water Quality Portal, so treat it as advisory rather than regulatory.
 - The rainfall baseline is 11 years. The WMO uses 30 years for climate normals, so treat
   anomalies within about one standard deviation as ordinary weather variability.
 - **West Point is a peaking hydropower dam.** Its release swings from a few hundred cfs
@@ -102,4 +113,5 @@ No build step and no dependencies beyond the Python standard library.
 ## License
 
 MIT for the code in this repository. The underlying data is public domain (USGS, NOAA) or
-belongs to its respective provider (GDOT, Open-Meteo).
+belongs to its respective provider (GDOT, Open-Meteo, Chattahoochee Riverkeeper,
+OpenStreetMap contributors).

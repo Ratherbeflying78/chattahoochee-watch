@@ -834,6 +834,137 @@
   }
 
   /* =====================================================================
+     PANEL 3b — CHATTAHOOCHEE RIVERKEEPER
+     Neighborhood Water Watch is CRK's volunteer sampling programme: samples
+     are cultured in a lab, so these are *measured* E. coli counts rather than
+     the turbidity-and-flow model behind USGS BacteriALERT. Resolved twice a
+     day by scripts/build_crk.py into data/crk.json.
+     ===================================================================== */
+  let crkView = 'swim';
+
+  // West Point Lake proper, for the "my water" view.
+  const WPL_BOX = { s: 32.83, n: 33.20, w: -85.35, e: -85.02 };
+  const CRK_FLOOR = 50;   // CRK reports "<1 detected" as 50 MPN/100 mL
+
+  function loadCRK() {
+    return fetchJSON('data/crk.json', 20000).then(j => { DATA.crk = j; });
+  }
+
+  /* Tiny bar sparkline of a station's recent samples, coloured by threshold. */
+  function crkSpark(readings) {
+    const rs = (readings || []).filter(r => r.ec !== null && isFinite(r.ec));
+    if (rs.length < 2) return '<span class="dim">—</span>';
+    const W = 78, H = 22, gap = 1.5;
+    const top = Math.max(ECOLI_THRESHOLD, Math.max.apply(null, rs.map(r => r.ec)));
+    const bw = (W - gap * (rs.length - 1)) / rs.length;
+    const bars = rs.map((r, i) => {
+      const h = Math.max(1.5, (r.ec / top) * (H - 2));
+      const j = judge(P.ecoli, r.ec);
+      return `<rect x="${(i * (bw + gap)).toFixed(1)}" y="${(H - h).toFixed(1)}"
+        width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="1"
+        fill="var(--${j ? j.cls : 'dim'})"><title>${esc(r.d)}: ${F(r.ec, 0)} MPN</title></rect>`;
+    }).join('');
+    const y = (H - (ECOLI_THRESHOLD / top) * (H - 2)).toFixed(1);
+    return `<svg class="spark" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true">
+      ${bars}<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="var(--bad)"
+      stroke-width="0.8" stroke-dasharray="3 2" opacity=".65"/></svg>`;
+  }
+
+  function crkLatest(st) {
+    const rs = (st.readings || []).filter(r => r.ec !== null && isFinite(r.ec));
+    return rs.length ? rs[rs.length - 1] : null;
+  }
+
+  function crkRow(st) {
+    const last = crkLatest(st);
+    if (!last) return '';
+    const j = judge(P.ecoli, last.ec) || { cls: 'dim', note: '' };
+    const floor = last.ec <= CRK_FLOOR;
+    return `<tr>
+      <td>${esc(st.name)}${st.huc ? `<span class="sub">${esc(st.huc)}</span>` : ''}</td>
+      <td class="num ${j.cls}"><b>${floor ? '&lt;' + CRK_FLOOR : F(last.ec, 0)}</b></td>
+      <td class="spk">${crkSpark(st.readings)}</td>
+      <td class="num dim">${last.tb !== null ? F(last.tb, 1) : '—'}</td>
+      <td class="dim">${esc(last.d)}</td>
+    </tr>`;
+  }
+
+  function crkTable(rows, caption) {
+    if (!rows.length) return '<p class="dim">No samples available for this view.</p>';
+    return `<div class="tablewrap"><table class="crk">
+      <thead><tr><th>Sampling site</th><th class="num">E. coli<span class="sub">MPN/100 mL</span></th>
+        <th>Recent samples</th><th class="num">Turbidity<span class="sub">NTU</span></th><th>Sampled</th></tr></thead>
+      <tbody>${rows.join('')}</tbody></table></div>
+      ${caption ? `<p class="cap">${caption}</p>` : ''}`;
+  }
+
+  function renderCRK() {
+    const C = DATA.crk, box = $('#crkBody');
+    if (!box) return;
+    if (!C) { err('#crkBody', 'Riverkeeper sample data could not be loaded.'); return; }
+    const sites = C.nww || [];
+
+    if (crkView === 'swim') {
+      const sg = (C.swimguide || []).filter(s => s.ec !== null);
+      if (!sg.length) { box.innerHTML = '<p class="dim">The Swim Guide layer is empty — it runs Memorial Day to Labor Day.</p>'; }
+      else {
+        const byRegion = {};
+        sg.forEach(s => (byRegion[s.region] || (byRegion[s.region] = [])).push(s));
+        box.innerHTML = Object.keys(byRegion).map(rg => `
+          <h4 class="crkhead">${esc(rg)}</h4>
+          <div class="swimgrid">${byRegion[rg].map(s => {
+            const j = judge(P.ecoli, s.ec) || { cls: 'dim', note: '' };
+            const label = s.ec >= ECOLI_THRESHOLD ? 'Not recommended'
+              : s.ec >= 126 ? 'Marginal' : 'Passing';
+            const nm = esc(s.name);
+            return `<div class="swimcard ${j.cls}">
+              <div class="swimtop"><span class="ctag ${j.cls}">${label}</span>
+                <span class="dim tiny">${esc(s.date || '')}</span></div>
+              <div class="swimname">${s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${nm}</a>` : nm}</div>
+              <div class="swimval ${j.cls}">${s.ec <= CRK_FLOOR ? '&lt;' + CRK_FLOOR : F(s.ec, 0)}
+                <span class="unit">MPN/100 mL</span></div>
+              <div class="tiny dim">${esc(j.note)}</div>
+            </div>`;
+          }).join('')}</div>`).join('');
+      }
+      $('#crkNote').innerHTML = `Riverkeeper samples these access points weekly through the summer and posts the
+        result to <a href="https://www.theswimguide.org/affiliates/chattahoochee-riverkeeper" target="_blank"
+        rel="noopener">Swim Guide</a>. <b>Passing</b> is under 126 MPN/100 mL, <b>marginal</b> is 126–234, and
+        <b>not recommended</b> is 235 or above. A result describes the water on the day it was collected —
+        bacteria rise sharply for a day or two after heavy rain.`;
+      return;
+    }
+
+    if (crkView === 'wpl') {
+      const wpl = sites.filter(s => (s.lat >= WPL_BOX.s && s.lat <= WPL_BOX.n &&
+        s.lon >= WPL_BOX.w && s.lon <= WPL_BOX.e) || /west point/i.test(s.name));
+      wpl.sort((a, b) => (crkLatest(b) ? crkLatest(b).ec : -1) - (crkLatest(a) ? crkLatest(a).ec : -1));
+      box.innerHTML = crkTable(wpl.map(crkRow).filter(Boolean));
+      $('#crkNote').innerHTML = `Every Riverkeeper sampling site on and around West Point Lake, worst first.
+        Coves and creek arms hold bacteria far longer than open water, so a hot reading in one cove says little
+        about the main lake. <b>&lt;50</b> means nothing was detected.`;
+      return;
+    }
+
+    const rows = sites.map(s => ({ s: s, last: crkLatest(s) })).filter(x => x.last);
+    if (crkView === 'worst') {
+      rows.sort((a, b) => b.last.ec - a.last.ec);
+      const top = rows.slice(0, 20);
+      box.innerHTML = crkTable(top.map(x => crkRow(x.s)));
+      $('#crkNote').innerHTML = `The twenty dirtiest samples across the basin from the most recent round.
+        These are mostly small urban creeks, not the river itself — they are where Riverkeeper hunts sewage
+        leaks and failing septic systems. The dashed line on each sparkline is the 235 limit.`;
+      return;
+    }
+
+    rows.sort((a, b) => a.s.name.localeCompare(b.s.name));
+    box.innerHTML = crkTable(rows.map(x => crkRow(x.s)));
+    $('#crkNote').innerHTML = `All ${rows.length} Riverkeeper sites sampled in the corridor over the last two
+      months, from the Helen headwaters to Columbus. Samples are usually collected on Wednesdays and cultured
+      for 24 hours, so results post mid-week.`;
+  }
+
+  /* =====================================================================
      PANEL 4 — WEATHER
      ===================================================================== */
   function loadWeather() {
@@ -1165,7 +1296,10 @@
     const rain = (DATA.rain ? Promise.resolve() : loadRain()).then(renderRain)
       .catch(e => { console.error(e); err('#rainVerdict', 'Rainfall climatology could not be loaded.'); });
 
-    return Promise.all([water, weather, rain, geo]).then(() => setUpdated(true));
+    const crk = (DATA.crk ? Promise.resolve() : loadCRK()).then(renderCRK)
+      .catch(e => { console.error(e); err('#crkBody', 'Riverkeeper sample data could not be loaded.'); });
+
+    return Promise.all([water, weather, rain, geo, crk]).then(() => setUpdated(true));
   }
 
   // metric selector for the river map
@@ -1174,6 +1308,13 @@
     b.classList.add('active');
     MAP_METRIC = b.dataset.metric;
     renderMap();
+  }));
+
+  $$('#crkBar .mbtn').forEach(b => b.addEventListener('click', () => {
+    $$('#crkBar .mbtn').forEach(o => o.classList.remove('active'));
+    b.classList.add('active');
+    crkView = b.dataset.crk;
+    renderCRK();
   }));
 
   // tabs

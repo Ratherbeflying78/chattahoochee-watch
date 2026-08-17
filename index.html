@@ -100,6 +100,20 @@
     <div class="card alert" id="qualityVerdict"><div class="skel">Assessing water quality…</div></div>
     <div class="grid" id="qualityKpis"></div>
     <div class="card">
+      <h3>Chattahoochee Riverkeeper — lab-tested bacteria</h3>
+      <p class="cap">Riverkeeper's <b>Neighborhood Water Watch</b> volunteers collect samples every week and culture
+        them in a lab. These are measured counts, not the modelled estimates above — the strongest bacteria data
+        available for this river. Their summer <b>Swim Guide</b> applies the same tests to popular access points.</p>
+      <div class="metricbar" id="crkBar">
+        <button class="mbtn active" data-crk="swim" type="button">Swim Guide</button>
+        <button class="mbtn" data-crk="wpl" type="button">West Point Lake</button>
+        <button class="mbtn" data-crk="worst" type="button">Worst this week</button>
+        <button class="mbtn" data-crk="all" type="button">All sites</button>
+      </div>
+      <div id="crkBody"><div class="skel">Loading Riverkeeper samples…</div></div>
+      <p class="cap" id="crkNote"></p>
+    </div>
+    <div class="card">
       <h3>Bacteria — E. coli at Atlanta &amp; Norcross</h3>
       <p class="cap">USGS BacteriALERT estimates bacteria continuously from turbidity and flow. The red line is
         <b>235 cfu/100 mL</b>, the single-sample threshold above which contact recreation is discouraged.</p>
@@ -229,13 +243,15 @@
     <p><b>Sources.</b> Water levels, streamflow and water quality: <a href="https://waterservices.usgs.gov/" target="_blank" rel="noopener">USGS National Water Information System</a> (instantaneous values, updated every 15–60 minutes).
       Forecast: <a href="https://www.weather.gov/ffc/" target="_blank" rel="noopener">NOAA / National Weather Service Peachtree City</a>.
       Precipitation history and forecast: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> (ERA5 reanalysis + operational models).
-      Camera stills: <a href="https://511ga.org/map" target="_blank" rel="noopener">Georgia DOT / 511GA</a>.
+      Camera stills: <a href="https://511ga.org/map" target="_blank" rel="noopener">Georgia DOT / 511GA</a> and <a href="https://apps.usgs.gov/hivis/" target="_blank" rel="noopener">USGS HIVIS</a>.
+      Laboratory bacteria sampling: <a href="https://chattahoochee.org/" target="_blank" rel="noopener">Chattahoochee Riverkeeper</a> — <a href="https://nww.chattahoochee.org/" target="_blank" rel="noopener">Neighborhood Water Watch</a> and <a href="https://www.theswimguide.org/affiliates/chattahoochee-riverkeeper" target="_blank" rel="noopener">Swim Guide</a>.
       River and lake map geometry: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors, ODbL.</p>
     <p><b>Caveats.</b> These are provisional, unreviewed sensor readings and may contain errors or gaps. The USACE guide curve
       shown for West Point Lake is approximate and reconstructed for reference — consult the
       <a href="https://water.sam.usace.army.mil/" target="_blank" rel="noopener">Mobile District</a> for official lake operations.
-      BacteriALERT values are model estimates, not laboratory results. Nothing here is a substitute for official flood,
-      navigation or public-health advisories.</p>
+      BacteriALERT values are model estimates, not laboratory results; Riverkeeper's Neighborhood Water Watch values are
+      laboratory results but are weekly grab samples, and <b>&lt;50</b> means below the reporting floor. Nothing here is a
+      substitute for official flood, navigation or public-health advisories.</p>
     <p class="tiny">Chattahoochee Watch · data refreshes automatically in your browser · <span id="builtAt"></span></p>
   </footer>
 </main>
