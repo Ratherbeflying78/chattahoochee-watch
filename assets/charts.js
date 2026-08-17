@@ -266,5 +266,68 @@
     mount(box, svg);
   }
 
-  global.Charts = { lineChart, barCompare, barYears, barSimple, fmt, empty };
+  /* ---------------- grouped bar chart ----------------
+     groups: [{label, sub}]                      one per x-axis slot
+     series: [{name, color, values:[Number|null]}]  one value per group
+  */
+  function barGroups(box, groups, series, opts) {
+    opts = opts || {};
+    series = (series || []).filter(s => s && s.values && s.values.length);
+    if (!groups || !groups.length || !series.length) return empty(box, opts.emptyMsg);
+
+    const W = opts.width || 960, H = opts.height || 320;
+    const padL = 58, padR = 12, padT = 16, padB = 42;
+    const pw = W - padL - padR, ph = H - padT - padB;
+
+    let top = 0;
+    series.forEach(s => s.values.forEach(v => { if (v !== null && isFinite(v) && v > top) top = v; }));
+    if (!(top > 0)) return empty(box, opts.emptyMsg);
+    const step = niceStep(top, 5);
+    top = Math.ceil(top / step) * step;
+    const Y = v => padT + ph - (v / top) * ph;
+
+    const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'chart', preserveAspectRatio: 'none' });
+
+    for (let g = 0; g <= top + 1e-9; g += step) {
+      const y = Y(g).toFixed(1);
+      svg.appendChild(el('line', { x1: padL, y1: y, x2: W - padR, y2: y, class: 'grid' }));
+      const t = el('text', { x: padL - 8, y: (+y + 4).toFixed(1), class: 'ax', 'text-anchor': 'end' });
+      t.textContent = fmt(g, opts.yDp);
+      svg.appendChild(t);
+    }
+
+    const slot = pw / groups.length;
+    const inner = slot * 0.78;
+    const bw = Math.max(2, inner / series.length - 1.5);
+
+    groups.forEach((grp, gi) => {
+      const x0 = padL + gi * slot + (slot - inner) / 2;
+      series.forEach((s, si) => {
+        const v = s.values[gi];
+        if (v === null || !isFinite(v)) return;
+        const y = Y(v), h = Math.max(1, padT + ph - y);
+        const bx = x0 + si * (inner / series.length);
+        const r = el('rect', { x: bx.toFixed(1), y: y.toFixed(1), width: bw.toFixed(1),
+          height: h.toFixed(1), fill: s.color, rx: 2 });
+        const ti = el('title');
+        ti.textContent = `${s.name} — ${grp.label}: ${fmt(v, opts.yDp)}${opts.unit ? ' ' + opts.unit : ''}`;
+        r.appendChild(ti);
+        svg.appendChild(r);
+      });
+      const lt = el('text', { x: (x0 + inner / 2).toFixed(1), y: H - 22, class: 'ax', 'text-anchor': 'middle' });
+      lt.textContent = grp.label;
+      svg.appendChild(lt);
+      if (grp.sub) {
+        const st = el('text', { x: (x0 + inner / 2).toFixed(1), y: H - 8, class: 'ax', 'text-anchor': 'middle' });
+        st.textContent = grp.sub;
+        svg.appendChild(st);
+      }
+    });
+
+    svg.appendChild(el('line', { x1: padL, y1: (padT + ph).toFixed(1), x2: W - padR,
+      y2: (padT + ph).toFixed(1), class: 'axis' }));
+    mount(box, svg);
+  }
+
+  global.Charts = { lineChart, barCompare, barYears, barSimple, barGroups, fmt, empty };
 })(window);

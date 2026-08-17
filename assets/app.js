@@ -695,22 +695,48 @@
         Lake Lanier at the top of the basin to West Point at the bottom.</p>`;
     $('#riverProfile').innerHTML = html;
 
-    // hydrographs
+    // Daily mean flow per station. Daily means are used deliberately: Buford and
+    // West Point are peaking hydropower dams, so instantaneous traces are a sawtooth
+    // that hides the actual day-to-day movement of water down the basin.
     const palette = ['#38bdf8', '#a78bfa', '#4ade80', '#fbbf24', '#f472b6', '#22d3ee'];
     const picks = ['02334430', '02335000', '02336000', '02337170', '02338000', '02338500'];
+
+    const DAYS = 7;
+    const midnight = new Date(); midnight.setHours(0, 0, 0, 0);
+    const days = [];
+    for (let i = DAYS - 1; i >= 0; i--) {
+      const d = new Date(midnight.getTime() - i * 86400000);
+      days.push({ key: d.toDateString(), date: d });
+    }
+    const groups = days.map((d, i) => ({
+      label: i === days.length - 1 ? 'Today'
+        : d.date.toLocaleDateString([], { weekday: 'short' }),
+      sub: (d.date.getMonth() + 1) + '/' + d.date.getDate()
+    }));
+
     const series = [], chips = [];
     picks.forEach((id, i) => {
       const f = get(id, P.flow);
       if (!f) return;
-      const cutoff = Date.now() - 7 * 86400000;
-      const pts = f.points.filter(p => +p.t >= cutoff);
-      if (!pts.length) return;
-      series.push({ name: SITE[id].name, color: palette[i % palette.length], points: pts });
-      chips.push(`<span class="chip"><i style="background:${palette[i % palette.length]}"></i>${esc(SITE[id].name)}
-        — ${F(f.latest, 0)} cfs</span>`);
+      const buckets = {};
+      f.points.forEach(p => {
+        if (!isFinite(p.v)) return;
+        const k = new Date(+p.t).toDateString();
+        (buckets[k] || (buckets[k] = [])).push(p.v);
+      });
+      const values = days.map(d => {
+        const b = buckets[d.key];
+        return b && b.length ? b.reduce((a, c) => a + c, 0) / b.length : null;
+      });
+      if (!values.some(v => v !== null)) return;
+      const color = palette[i % palette.length];
+      series.push({ name: SITE[id].name, color: color, values: values });
+      chips.push(`<span class="chip"><i style="background:${color}"></i>${esc(SITE[id].name)}
+        — ${F(f.latest, 0)} cfs now</span>`);
     });
     $('#flowChips').innerHTML = chips.join('');
-    Charts.lineChart($('#flowChart'), series, { yDp: 0, unit: 'cfs', height: 320, minZero: true, emptyMsg: 'Streamflow data unavailable.' });
+    Charts.barGroups($('#flowChart'), groups, series,
+      { yDp: 0, unit: 'cfs', height: 340, emptyMsg: 'Streamflow data unavailable.' });
   }
 
   /* =====================================================================
