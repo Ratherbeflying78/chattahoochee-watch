@@ -965,6 +965,221 @@
   }
 
   /* =====================================================================
+     PANEL 3c — REACH MAP, Franklin to West Point Dam
+     A zoomed geographic view of the water the user actually cares about,
+     with the Riverkeeper sampling sites plotted in place. Markers are
+     numbered north-to-south (downstream) and keyed to the list beside it,
+     which sidesteps the label-collision problem entirely at this density.
+     ===================================================================== */
+  const REACH = { s: 32.845, n: 33.335, w: -85.32, e: -84.96 };
+  const CREEK_RE = /creek|tributary|wehadkee|branch|trib\b/i;
+  const STALE_DAYS = 21;          // NWW samples weekly; older than this is not "current"
+  let REACH_SEL = null;
+
+  function daysOld(dstr) {
+    const t = Date.parse(dstr + 'T12:00:00Z');
+    if (!isFinite(t)) return null;
+    return Math.round((Date.now() - t) / 86400000);
+  }
+
+  function reachSites() {
+    const C = DATA.crk;
+    if (!C || !C.nww) return [];
+    return C.nww
+      .filter(s => s.lat >= REACH.s && s.lat <= REACH.n && s.lon >= REACH.w && s.lon <= REACH.e)
+      .filter(s => crkLatest(s))
+      .sort((a, b) => b.lat - a.lat)                    // downstream order
+      .map((s, i) => {
+        const age = daysOld(crkLatest(s).d);
+        return Object.assign({}, s, {
+          no: i + 1,
+          creek: CREEK_RE.test(s.name),
+          age: age,
+          stale: age === null || age > STALE_DAYS,
+        });
+      });
+  }
+
+  function renderReachMap() {
+    const box = $('#reachMap'), listBox = $('#reachList');
+    if (!box || !listBox) return;
+    const sites = reachSites();
+    if (!GEO) { box.innerHTML = '<div class="err">Map geometry could not be loaded.</div>'; return; }
+    if (!sites.length) { box.innerHTML = '<div class="err">No Riverkeeper sites in this reach.</div>'; return; }
+
+    const clip = p => p[0] >= REACH.s && p[0] <= REACH.n && p[1] >= REACH.w && p[1] <= REACH.e;
+    const river = GEO.river.filter(clip);
+    const lake = (GEO.lakes.westpoint || []).map(r => r.filter(clip)).filter(r => r.length > 2);
+    const gauges = STATIONS.filter(s => s.lat >= REACH.s && s.lat <= REACH.n &&
+      s.lon >= REACH.w && s.lon <= REACH.e);
+
+    let latMin = 90, latMax = -90, lonMin = 180, lonMax = -180;
+    const bump = (la, lo) => {
+      if (la < latMin) latMin = la; if (la > latMax) latMax = la;
+      if (lo < lonMin) lonMin = lo; if (lo > lonMax) lonMax = lo;
+    };
+    river.forEach(p => bump(p[0], p[1]));
+    lake.forEach(r => r.forEach(p => bump(p[0], p[1])));
+    sites.forEach(s => bump(s.lat, s.lon));
+    gauges.forEach(s => bump(s.lat, s.lon));
+
+    const padLat = (latMax - latMin) * 0.05, padLon = (lonMax - lonMin) * 0.08;
+    latMin -= padLat; latMax += padLat; lonMin -= padLon; lonMax += padLon;
+
+    const k = Math.cos((latMin + latMax) / 2 * Math.PI / 180);
+    const spanX = (lonMax - lonMin) * k, spanY = latMax - latMin;
+    const W = 520, H = Math.round(W * (spanY / spanX));
+    const PAD = 26;
+    const X = lo => ((lo - lonMin) * k / spanX) * (W - PAD * 2) + PAD;
+    const Y = la => ((latMax - la) / spanY) * (H - 24) + 12;
+
+    const NS = 'http://www.w3.org/2000/svg';
+    const mk = (n, a) => {
+      const e = document.createElementNS(NS, n);
+      for (const q in a) if (a[q] != null) e.setAttribute(q, a[q]);
+      return e;
+    };
+    const svg = mk('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img',
+      'aria-label': 'Map of West Point Lake from Franklin to West Point Dam with Riverkeeper sampling sites' });
+    svg.appendChild(mk('rect', { x: 0, y: 0, width: W, height: H, class: 'mapbg' }));
+
+    for (let la = Math.ceil(latMin * 10) / 10; la <= latMax; la += 0.1) {
+      svg.appendChild(mk('line', { x1: 0, y1: Y(la).toFixed(1), x2: W, y2: Y(la).toFixed(1), class: 'gridline' }));
+    }
+    for (let lo = Math.ceil(lonMin * 10) / 10; lo <= lonMax; lo += 0.1) {
+      svg.appendChild(mk('line', { x1: X(lo).toFixed(1), y1: 0, x2: X(lo).toFixed(1), y2: H, class: 'gridline' }));
+    }
+
+    lake.forEach(r => {
+      const d = r.map((p, i) => (i ? 'L' : 'M') + X(p[1]).toFixed(1) + ' ' + Y(p[0]).toFixed(1)).join(' ') + ' Z';
+      svg.appendChild(mk('path', { d, class: 'lakepoly' }));
+    });
+    if (river.length > 1) {
+      const rd = river.map((p, i) => (i ? 'L' : 'M') + X(p[1]).toFixed(1) + ' ' + Y(p[0]).toFixed(1)).join(' ');
+      svg.appendChild(mk('path', { d: rd, class: 'riverglow', 'stroke-width': 7 }));
+      svg.appendChild(mk('path', { d: rd, class: 'riverline', 'stroke-width': 2.4 }));
+    }
+
+    // Drop a town label when a sampling marker already occupies that spot —
+    // "West Point" the town and the West Point sampling sites are the same place.
+    PLACES.filter(p => p.lat >= latMin && p.lat <= latMax && p.lon >= lonMin && p.lon <= lonMax)
+      .filter(p => !sites.some(s => Math.abs(s.lat - p.lat) < 0.006 && Math.abs(s.lon - p.lon) < 0.006))
+      .forEach(p => {
+        const x = X(p.lon), y = Y(p.lat);
+        svg.appendChild(mk('circle', { cx: x.toFixed(1), cy: y.toFixed(1), r: 2.4, class: 'placedot' }));
+        const t = mk('text', { x: (x + 6).toFixed(1), y: (y + 3.5).toFixed(1), class: 'placelbl' });
+        t.textContent = p.name;
+        svg.appendChild(t);
+      });
+
+    // USGS gauges for orientation — the dam and the lake inflow anchor the reach.
+    // Several sit within a few hundred metres of each other (the pool gauge and the
+    // tailwater gauge share the dam), so collapse near-duplicates to one pin, and
+    // offset pins to the left so they never hide under a sampling marker.
+    const seen = {};
+    gauges.filter(g => {
+      const key = g.lat.toFixed(2) + ',' + g.lon.toFixed(2);
+      if (seen[key]) return false;
+      seen[key] = 1;
+      return true;
+    }).forEach(g => {
+      const gx = X(g.lon), y = Y(g.lat);
+      // Flip the pin to the right when the label would run off the left edge.
+      const estW = g.name.length * 5.2;
+      const left = gx - 15 - 7 - estW > 4;
+      const x = left ? gx - 15 : gx + 15;
+      const node = mk('g', { class: 'gaugepin' });
+      node.appendChild(mk('path', { d: `M${x.toFixed(1)} ${(y - 5.5).toFixed(1)}L${(x + 4.8).toFixed(1)} ${(y + 3).toFixed(1)}L${(x - 4.8).toFixed(1)} ${(y + 3).toFixed(1)}Z` }));
+      const t = mk('text', { x: (left ? x - 7 : x + 7).toFixed(1), y: (y + 3.5).toFixed(1),
+        'text-anchor': left ? 'end' : 'start' });
+      t.textContent = g.name;
+      node.appendChild(t);
+      const ti = document.createElementNS(NS, 'title');
+      ti.textContent = `USGS gauge — ${g.name}: ${g.sub}`;
+      node.appendChild(ti);
+      svg.appendChild(node);
+    });
+
+    // scale bar (10 km)
+    const px10 = (10 / 111.0 / spanY) * (H - 24);
+    const sx = 12, sy = H - 12;
+    svg.appendChild(mk('line', { x1: sx, y1: sy, x2: sx + px10, y2: sy, class: 'scalebar' }));
+    svg.appendChild(mk('line', { x1: sx, y1: sy - 4, x2: sx, y2: sy + 4, class: 'scalebar' }));
+    svg.appendChild(mk('line', { x1: sx + px10, y1: sy - 4, x2: sx + px10, y2: sy + 4, class: 'scalebar' }));
+    const stx = mk('text', { x: sx + px10 + 6, y: sy + 4, class: 'scaletxt' });
+    stx.textContent = '10 km';
+    svg.appendChild(stx);
+
+    const select = key => {
+      REACH_SEL = REACH_SEL === key ? null : key;
+      renderReachMap();
+      const row = listBox.querySelector('.rl.sel');
+      if (row && row.scrollIntoView) row.scrollIntoView({ block: 'nearest' });
+    };
+
+    sites.forEach(s => {
+      const last = crkLatest(s);
+      const j = judge(P.ecoli, last.ec) || { cls: 'dim' };
+      const x = X(s.lon), y = Y(s.lat);
+      const sel = REACH_SEL === s.key;
+      const g = mk('g', { class: 'snode ' + j.cls + (s.stale ? ' stale' : '') + (sel ? ' sel' : ''),
+        tabindex: '0', role: 'button',
+        'aria-label': `${s.name}: ${F(last.ec, 0)} E. coli, sampled ${last.d}` });
+      const r = sel ? 11 : 9;
+      if (s.creek) {
+        g.appendChild(mk('rect', { x: (x - r).toFixed(1), y: (y - r).toFixed(1),
+          width: (r * 2).toFixed(1), height: (r * 2).toFixed(1), rx: 3, class: 'sshape' }));
+      } else {
+        g.appendChild(mk('circle', { cx: x.toFixed(1), cy: y.toFixed(1), r: r.toFixed(1), class: 'sshape' }));
+      }
+      const t = mk('text', { x: x.toFixed(1), y: (y + 3.6).toFixed(1), 'text-anchor': 'middle', class: 'snum' });
+      t.textContent = s.no;
+      g.appendChild(t);
+      const ti = document.createElementNS(NS, 'title');
+      ti.textContent = `${s.no}. ${s.name}\nE. coli ${last.ec <= CRK_FLOOR ? '<' + CRK_FLOOR : F(last.ec, 0)} MPN/100 mL on ${last.d}`
+        + (s.stale ? `\nNot sampled in ${s.age} days — treat as historical` : '');
+      g.appendChild(ti);
+      g.addEventListener('click', () => select(s.key));
+      g.addEventListener('keydown', ev => {
+        if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); select(s.key); }
+      });
+      svg.appendChild(g);
+    });
+
+    box.innerHTML = '';
+    box.appendChild(svg);
+
+    listBox.innerHTML = sites.map(s => {
+      const last = crkLatest(s);
+      const j = judge(P.ecoli, last.ec) || { cls: 'dim', note: '' };
+      const sel = REACH_SEL === s.key;
+      return `<button type="button" class="rl ${j.cls}${s.stale ? ' stale' : ''}${sel ? ' sel' : ''}" data-key="${esc(s.key)}">
+        <span class="rlno ${j.cls}">${s.no}</span>
+        <span class="rlmain">
+          <span class="rlname">${esc(s.name)}</span>
+          <span class="rlmeta">${esc(last.d)}${s.creek ? ' · feeder creek' : ''}${
+            s.stale ? ` · <b class="staletag">${s.age} days old</b>` : ''}</span>
+          ${sel ? `<span class="rlnote">${esc(j.note)}</span>${crkSpark(s.readings)}` : ''}
+        </span>
+        <span class="rlval ${j.cls}">${last.ec <= CRK_FLOOR ? '&lt;' + CRK_FLOOR : F(last.ec, 0)}</span>
+      </button>`;
+    }).join('');
+    $$('#reachList .rl').forEach(b => b.addEventListener('click', () => select(b.dataset.key)));
+
+    const fresh = sites.filter(s => !s.stale);
+    const bad = fresh.filter(s => crkLatest(s).ec >= ECOLI_THRESHOLD).length;
+    const stale = sites.length - fresh.length;
+    const lakeN = sites.filter(s => !s.creek).length;
+    $('#reachNote').innerHTML = `${sites.length} Riverkeeper sites in this reach — ${lakeN} on the river and lake
+      (circles) and ${sites.length - lakeN} on feeder creeks (squares). Of the ${fresh.length} sampled in the last
+      ${STALE_DAYS} days, ${bad ? `<b>${bad}</b> came back at or above` : 'none reached'} the 235 MPN/100 mL contact
+      limit.${stale ? ` ${stale} site${stale > 1 ? 's are' : ' is'} drawn faded because ${stale > 1 ? 'their' : 'its'}
+      last result is older than that — historical, not current.` : ''}
+      Only the Chattahoochee itself is drawn, so a square sitting away from blue water is a creek being sampled
+      before it reaches the lake. Triangles are the USGS gauges that feed the rest of this dashboard.`;
+  }
+
+  /* =====================================================================
      PANEL 4 — WEATHER
      ===================================================================== */
   function loadWeather() {
@@ -1287,7 +1502,7 @@
         err(s, 'Could not reach the USGS water service. It may be briefly down — try Refresh.'));
     });
 
-    const geo = loadGeo().then(renderMap)
+    const geo = loadGeo().then(() => { renderMap(); renderReachMap(); })
       .catch(e => { console.error(e); err('#riverMap', 'Map geometry could not be loaded.'); });
 
     const weather = loadWeather().then(renderWeather)
@@ -1296,7 +1511,8 @@
     const rain = (DATA.rain ? Promise.resolve() : loadRain()).then(renderRain)
       .catch(e => { console.error(e); err('#rainVerdict', 'Rainfall climatology could not be loaded.'); });
 
-    const crk = (DATA.crk ? Promise.resolve() : loadCRK()).then(renderCRK)
+    const crk = (DATA.crk ? Promise.resolve() : loadCRK())
+      .then(() => { renderCRK(); renderReachMap(); })
       .catch(e => { console.error(e); err('#crkBody', 'Riverkeeper sample data could not be loaded.'); });
 
     return Promise.all([water, weather, rain, geo, crk]).then(() => setUpdated(true));

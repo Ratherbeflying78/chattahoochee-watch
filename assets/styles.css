@@ -1,4 +1,4 @@
-:root{
+﻿:root{
   --bg:#070d18; --card:#101a2e; --card2:#16233c; --line:#22314f;
   --ink:#e9effc; --dim:#8ba1c6; --dim2:#64789f;
   --cur:#38bdf8; --avg:#55688f; --hist:#39486a;
@@ -251,3 +251,44 @@ table.crk td.spk{padding:4px 10px;width:1%}
 .swimcard .ctag.good{background:#123a2a;color:#6ee7a8;border-color:#1d6b48}
 .swimcard .ctag.warn{background:#3b2f10;color:#fcd77f;border-color:#7a6120}
 .swimcard .ctag.bad{background:#3d1a1e;color:#fca5a5;border-color:#7d2f36}
+
+/* ---- Franklin-to-West-Point reach map ---- */
+.reachlayout{display:grid;grid-template-columns:minmax(300px,1.05fr) minmax(260px,1fr);gap:16px;align-items:start}
+@media(max-width:860px){.reachlayout{grid-template-columns:1fr}}
+#reachMap{display:grid;place-items:center}
+#reachMap svg{width:100%;height:auto;max-height:780px;display:block;border-radius:10px}
+.reachlist{max-height:780px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;padding-right:4px}
+.rl{display:flex;align-items:flex-start;gap:9px;width:100%;text-align:left;cursor:pointer;
+  background:#0e1a2f;border:1px solid #1b2942;border-left:3px solid var(--dim2);
+  border-radius:8px;padding:7px 10px;color:var(--ink);font:inherit;font-size:13px}
+.rl:hover{background:#14243d;border-color:#2a3f63}
+.rl.sel{background:#16294a;border-color:#3b5a8c}
+.rl.good{border-left-color:var(--good)} .rl.warn{border-left-color:var(--warn)}
+.rl.bad{border-left-color:var(--bad)}
+.rlno{flex:0 0 auto;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;
+  font-size:11px;font-weight:800;background:#16233c;color:var(--ink)}
+.rlno.good{background:#123a2a;color:#6ee7a8} .rlno.warn{background:#3b2f10;color:#fcd77f}
+.rlno.bad{background:#3d1a1e;color:#fca5a5}
+.rlmain{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px}
+.rlname{font-weight:600;line-height:1.3}
+.rlmeta{font-size:11px;color:var(--dim2)}
+.rlnote{font-size:11px;color:var(--dim);margin-top:2px}
+.rlval{flex:0 0 auto;font-weight:800;font-variant-numeric:tabular-nums;font-size:14px;padding-top:1px}
+.rlval.good{color:var(--good)} .rlval.warn{color:var(--warn)} .rlval.bad{color:var(--bad)}
+
+.snode{cursor:pointer}
+.snode .sshape{fill:#16233c;stroke:var(--dim2);stroke-width:1.6}
+.snode.good .sshape{fill:#123a2a;stroke:var(--good)}
+.snode.warn .sshape{fill:#3b2f10;stroke:var(--warn)}
+.snode.bad .sshape{fill:#3d1a1e;stroke:var(--bad)}
+.snode.sel .sshape{stroke-width:2.8}
+.snode:hover .sshape,.snode:focus .sshape{stroke-width:2.8}
+.snode:focus{outline:none}
+.snode .snum{font-size:10.5px;font-weight:800;fill:var(--ink);pointer-events:none}
+.gaugepin path{fill:#7dd3fc;fill-opacity:.85}
+.gaugepin text{font-size:9.5px;fill:#9dc4ea;paint-order:stroke;stroke:#08111f;stroke-width:2.5px}
+.snode.stale .sshape{stroke-dasharray:3 2.4;fill-opacity:.35}
+.snode.stale .snum{fill:#7f92b4}
+.rl.stale{opacity:.72}
+.staletag{color:var(--dim);font-weight:600}
+
