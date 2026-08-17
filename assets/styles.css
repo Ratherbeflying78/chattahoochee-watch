@@ -180,6 +180,12 @@ svg.chart{width:100%;height:auto;display:block;overflow:visible}
 .cam .ctag{display:inline-block;background:#12304f;color:#7dd3fc;border:1px solid #1d4b78;
   border-radius:99px;padding:1px 8px;font-size:10.5px;font-weight:700;text-transform:uppercase;
   letter-spacing:.4px;margin-top:8px}
+.cam .ctag.good{background:#123a2a;color:#6ee7a8;border-color:#1d6b48}
+.cam .clink{font-size:11px;margin-left:8px;white-space:nowrap}
+.rivercam figure{aspect-ratio:4/3;background:#070f1c}
+.rivercam img{object-fit:contain}
+.camage{font-weight:500;font-size:11px;color:var(--dim)}
+.camage.stale{color:#fbbf24}
 
 /* ---------- misc ---------- */
 .skel{background:linear-gradient(90deg,#152340,#1d2f52,#152340);background-size:200% 100%;

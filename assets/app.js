@@ -804,6 +804,51 @@
   /* =====================================================================
      PANEL 5 — CAMERAS
      ===================================================================== */
+  // USGS National Imagery Management System cameras — actual cameras mounted at
+  // streamgages, pointed at the water. Verified live 2026-08-17.
+  const RIVERCAMS = [
+    { id: 'GA_Chattahoochee_River_at_Helen', name: 'Chattahoochee River at Helen',
+      loc: 'Headwaters, White County — 130 river miles above Lake Lanier', site: '02330450', tag: 'Mainstem' },
+    { id: 'GA_Big_Creek_near_Alpharetta', name: 'Big Creek near Alpharetta',
+      loc: 'Tributary entering the river at Roswell', site: '02335700', tag: 'Tributary' },
+    { id: 'GA_Sweetwater_Creek_at_Austell', name: 'Sweetwater Creek at Austell',
+      loc: 'Tributary entering below Atlanta', site: '02336910', tag: 'Tributary' },
+    { id: 'GA_Chattahoochee_River_at_14th_Street_at_Columbus', name: 'Chattahoochee River at Columbus',
+      loc: '14th Street — whitewater shoals below West Point', site: '02341460', tag: 'Mainstem' },
+    { id: 'GA_Peachtree_Creek_at_Atlanta', name: 'Peachtree Creek at Atlanta',
+      loc: 'Joins the river just above the GA 280 gauge', site: '02336300', tag: 'Tributary' }
+  ];
+  const NIMS_LIST = 'https://api.waterdata.usgs.gov/nims/listFiles?limit=1&recent=true&camId=';
+  const NIMS_IMG = 'https://usgs-nims-images.s3.amazonaws.com/720/';
+
+  // Filenames look like CAM___2026-08-17T10-45-04Z.jpg
+  function nimsDate(fn) {
+    const m = /___(\d{4}-\d{2}-\d{2})T(\d{2})-(\d{2})-(\d{2})Z/.exec(fn || '');
+    if (!m) return null;
+    return new Date(`${m[1]}T${m[2]}:${m[3]}:${m[4]}Z`);
+  }
+
+  function refreshRiverCams() {
+    RIVERCAMS.forEach(c => {
+      const fig = document.getElementById('rc-' + c.id);
+      if (!fig) return;
+      fetchJSON(NIMS_LIST + encodeURIComponent(c.id), 20000).then(list => {
+        const fn = Array.isArray(list) ? list[0] : null;
+        if (!fn) throw new Error('no images');
+        const at = nimsDate(fn);
+        const stale = at && (Date.now() - at.getTime()) > 6 * 3600 * 1000;
+        fig.innerHTML = `<img src="${esc(NIMS_IMG + c.id + '/' + fn)}" alt="${esc(c.name)}" loading="lazy">`;
+        const s = document.getElementById('rcs-' + c.id);
+        if (s) {
+          s.textContent = at ? ago(at) : '';
+          s.className = 'camage' + (stale ? ' stale' : '');
+        }
+      }).catch(() => {
+        fig.innerHTML = '<div class="camfail">Camera image unavailable</div>';
+      });
+    });
+  }
+
   // Public GDOT / 511GA traffic cameras at or near Chattahoochee crossings,
   // ordered downstream. Verified live 2026-08-16.
   const CAMERAS = [
@@ -824,6 +869,22 @@
     const grid = $('#camGrid');
     if (grid.dataset.built) return;
     grid.dataset.built = '1';
+
+    const rgrid = $('#riverCamGrid');
+    if (rgrid) {
+      rgrid.innerHTML = RIVERCAMS.map(c => `
+        <div class="cam rivercam">
+          <figure id="rc-${esc(c.id)}"><div class="skel h">Loading…</div></figure>
+          <div class="meta">
+            <div class="cname">${esc(c.name)} <span class="camage" id="rcs-${esc(c.id)}"></span></div>
+            <div class="cloc">${esc(c.loc)}</div>
+            <span class="ctag good">${esc(c.tag)}</span>
+            <a class="clink" href="https://waterdata.usgs.gov/monitoring-location/${esc(c.site)}/"
+               target="_blank" rel="noopener">USGS ${esc(c.site)} ↗</a>
+          </div>
+        </div>`).join('');
+    }
+
     grid.innerHTML = CAMERAS.map(c => `
       <div class="cam">
         <figure>
@@ -841,6 +902,7 @@
   }
 
   function refreshCams() {
+    refreshRiverCams();
     const stamp = Date.now();
     CAMERAS.forEach(c => {
       const img = document.getElementById('cam-' + c.id);

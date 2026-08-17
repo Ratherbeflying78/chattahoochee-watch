@@ -149,27 +149,43 @@
   <!-- ================= CAMERAS ================= -->
   <section class="panel" id="panel-cams">
     <div class="card">
-      <h3>Live cameras along the corridor</h3>
-      <p class="cap">Public GDOT / 511GA traffic cameras positioned at or near Chattahoochee River crossings,
-        ordered downstream from Atlanta to West Point. Images refresh every 60 seconds.
-        These are roadway cameras, not scenic river cams — and GDOT rotates capacity, so any individual
-        camera may show an “image unavailable” placeholder. Use them to eyeball conditions, not to judge river stage.</p>
+      <h3>River cameras <span class="badge good">USGS</span></h3>
+      <p class="cap">These are the real thing: cameras mounted at USGS streamgages and pointed directly at the water,
+        from the USGS <a href="https://apps.usgs.gov/hivis/" target="_blank" rel="noopener">National Imagery Management System</a>.
+        Each frame is stamped with the gauge number and time. Cameras shoot every 15 minutes during daylight,
+        so expect dark frames overnight and a timestamp that lags the current moment.</p>
       <div class="camctl">
         <button id="camRefresh" class="btn" type="button">Refresh all cameras</button>
         <span class="dim" id="camNote"></span>
       </div>
+      <div class="camgrid" id="riverCamGrid"></div>
+    </div>
+
+    <div class="card">
+      <h3>Bridge &amp; roadway views</h3>
+      <p class="cap">Public GDOT / 511GA traffic cameras positioned at or near Chattahoochee River crossings,
+        ordered downstream from Atlanta to West Point. Images refresh every 60 seconds.
+        These are roadway cameras, not scenic river cams — and GDOT rotates capacity, so any individual
+        camera may show an “image unavailable” placeholder. Use them to eyeball conditions, not to judge river stage.</p>
       <div class="camgrid" id="camGrid"></div>
     </div>
     <div class="card note-card">
-      <h3>What we could not find</h3>
+      <h3>Notes and gaps</h3>
       <ul class="take">
+        <li><b>There is a USGS camera at Morgan Falls Dam</b> — gauge 02335815, one of the gauges on the River Profile map —
+          but it has been dormant since March 2025 and USGS currently flags it as hidden, so it is not shown here.
+          If it comes back online it will appear automatically.</li>
         <li><b>No public dam cameras.</b> Neither the Corps of Engineers at West Point Dam nor Buford Dam publishes
           an embeddable live camera feed.</li>
         <li><b>No National Park Service cams.</b> The Chattahoochee River National Recreation Area does not run a public webcam.</li>
-        <li><b>Video streams are locked.</b> GDOT does publish HLS video for these cameras, but the streams require
+        <li><b>Video streams are locked.</b> GDOT does publish HLS video for its cameras, but the streams require
           authentication, so only the still images can be shown here.</li>
+        <li><b>Daylight only.</b> USGS river cameras shoot during daylight hours, so overnight the most recent frame
+          will be dark and its timestamp will drift until shooting resumes after sunrise.</li>
       </ul>
-      <p class="cap" style="margin-top:12px">Camera imagery courtesy of the
+      <p class="cap" style="margin-top:12px">River camera imagery courtesy of the
+        <a href="https://apps.usgs.gov/hivis/" target="_blank" rel="noopener">USGS National Imagery Management System</a>;
+        roadway imagery courtesy of the
         <a href="https://511ga.org/map" target="_blank" rel="noopener">Georgia Department of Transportation / 511GA</a>.</p>
     </div>
   </section>
