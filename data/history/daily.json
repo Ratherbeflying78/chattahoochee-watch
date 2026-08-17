@@ -36,7 +36,7 @@
 },
 {
 "date":"2026-08-17",
-"captured_utc":"2026-08-17T11:28:49+00:00",
+"captured_utc":"2026-08-17T11:44:00+00:00",
 "lanier__elev_ft":1066.34,
 "lanier__storage_kaf":1782.0,
 "buford_release__wtemp_c":9.6,
@@ -58,7 +58,7 @@
 "atlanta__ecoli_cfu":170.0,
 "fairburn__wtemp_c":25.5,
 "fairburn__flow_cfs":1250.0,
-"fairburn__stage_ft":0.55,
+"fairburn__stage_ft":0.54,
 "fairburn__spc_uscm":199.0,
 "fairburn__do_mgl":6.9,
 "fairburn__ph":7.3,
