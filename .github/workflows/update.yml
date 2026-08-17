@@ -51,6 +51,12 @@ jobs:
             echo "No data changes to commit."
           fi
 
+      - name: Stamp asset URLs with the commit
+        # Pages serves assets with a 10-minute cache. Without a changing query
+        # string a browser can pair a fresh index.html with a stale app.js,
+        # which renders the page with cards that never fill in.
+        run: sed -i "s/?v=dev/?v=${GITHUB_SHA::12}/g" index.html
+
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

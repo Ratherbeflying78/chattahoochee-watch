@@ -77,7 +77,11 @@
   function fetchJSON(url, timeoutMs) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), timeoutMs || 25000);
-    return fetch(url, { signal: ctrl.signal, headers: { Accept: 'application/json' } })
+    // Our own data files are rewritten twice a day, so always revalidate them
+    // rather than let a browser serve a stale copy for the full cache lifetime.
+    const opts = { signal: ctrl.signal, headers: { Accept: 'application/json' } };
+    if (!/^https?:/i.test(url)) opts.cache = 'no-cache';
+    return fetch(url, opts)
       .then(r => {
         if (!r.ok) throw new Error('HTTP ' + r.status + ' from ' + url);
         return r.json();
