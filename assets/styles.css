@@ -573,4 +573,5 @@ table.crk td.spk{padding:4px 10px;width:1%}
   .phdrop, .phfoam, .phspark, .phrunner.spin, .phrotor.spin, .phstate.on circle { animation:none }
   .phdrop { opacity:.9 }
 }.phcrane line { stroke:#8d9db6; stroke-width:2 }
-.phcrane rect { fill:#6d7f9a; stroke:#a9bad2; stroke-width:1 }
+.phcrane rect { fill:#6d7f9a; stroke:#a9bad2; stroke-width:1 }.damclock .dcday { stroke:#33456a; stroke-width:1; stroke-dasharray:4 4 }
+.damclock .dcax.day { fill:#7f97b5; font-size:10px; font-weight:700; letter-spacing:.08em }

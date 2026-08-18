@@ -465,8 +465,9 @@
       <!-- inflow, deep in the lake -->
       <g class="dflowin" style="--sp:${inSp}s">
         <text class="dlabel" x="${AX + 20}" y="${dY(586).toFixed(1)}">Inflow from Franklin</text>
-        <text class="dbig in" x="${AX + 20}" y="${dY(578).toFixed(1)}">${inMean === null ? '—' : F(inMean, 0) + ' cfs'}</text>
-        <text class="dsub" x="${AX + 20}" y="${dY(572).toFixed(1)}">24-hour average${inNow === null ? '' : ' · ' + F(inNow, 0) + ' now'}</text>
+        <text class="dbig in" x="${AX + 20}" y="${dY(578).toFixed(1)}">${inNow === null ? (inMean === null ? '—' : F(inMean, 0) + ' cfs') : F(inNow, 0) + ' cfs'}</text>
+        <text class="dsub" x="${AX + 20}" y="${dY(572).toFixed(1)}">${inNow === null ? '24-hour average' :
+          'right now' + (inMean === null ? '' : ' · ' + F(inMean, 0) + ' cfs 24-hr average')}</text>
         ${[0, 1, 2, 3].map(i => `<path class="dchev" style="--d:${(i * 0.42).toFixed(2)}s"
           d="M ${300 + i * 30} ${dY(582).toFixed(1)} l 15 9 l -15 9"/>`).join('')}
       </g>
@@ -530,9 +531,9 @@
 
       <g class="dflowout">
         <text class="dlabel" x="${W - 22}" y="${(yTw - 70).toFixed(1)}" text-anchor="end">Release below the dam</text>
-        <text class="dbig out" x="${W - 22}" y="${(yTw - 38).toFixed(1)}" text-anchor="end">${outMean === null ? '—' : F(outMean, 0) + ' cfs'}</text>
-        <text class="dsub" x="${W - 22}" y="${(yTw - 20).toFixed(1)}" text-anchor="end">24-hour average${
-          outNow === null ? '' : ' · ' + F(outNow, 0) + ' cfs right now'}</text>
+        <text class="dbig out" x="${W - 22}" y="${(yTw - 38).toFixed(1)}" text-anchor="end">${outNow === null ? (outMean === null ? '—' : F(outMean, 0) + ' cfs') : F(outNow, 0) + ' cfs'}</text>
+        <text class="dsub" x="${W - 22}" y="${(yTw - 20).toFixed(1)}" text-anchor="end">${outNow === null ? '24-hour average' :
+          'right now' + (outMean === null ? '' : ' · ' + F(outMean, 0) + ' cfs 24-hr average')}</text>
         ${tw === null ? '' : `<text class="dsub" x="${W - 22}" y="${(yTw + 22).toFixed(1)}" text-anchor="end">tailwater ${F(tw, 2)} ft${
           head === null ? '' : ' · ' + F(head, 1) + ' ft of head'}</text>`}
       </g>
@@ -575,82 +576,103 @@
         { name: 'Release below the dam', color: '#38bdf8', points: clip(outRec), fill: true }
       ], { yDp: 0, unit: 'cfs', height: 300, xMode: 'datetime', xTicks: 8, dayLines: true, minZero: true });
     }
-    renderDamClock(outRec);
+    renderDamHours(outRec);
     renderPowerhouse(outRec, outNow, outMean, head, gen);
   }
-
-  /* Average release by hour of local time over the last two weeks. This is the
-     answer to "when does it generate" — the daily cycle is far more repeatable
-     than the day-to-day totals. */
-  function renderDamClock(outRec) {
+  /* Actual release, hour by hour, for the last three days. Every bar is a real
+     gauge reading taken at the top of that hour — nothing is averaged. */
+  function renderDamHours(outRec) {
     const box = $('#damClock');
     if (!box) return;
-    if (!outRec || !outRec.points || outRec.points.length < 48) {
-      box.innerHTML = '<div class="err">Not enough release history to profile the day.</div>';
-      return;
-    }
-    const sum = new Array(24).fill(0), n = new Array(24).fill(0);
-    outRec.points.forEach(p => {
-      if (!isFinite(p.v)) return;
-      const h = new Date(p.t).getHours();
-      sum[h] += p.v; n[h]++;
+    const pts = (outRec && outRec.points ? outRec.points : []).filter(p => isFinite(p.v))
+      .sort((a, b) => +a.t - +b.t);
+    if (pts.length < 12) { box.innerHTML = '<div class="err">The release gauge is not reporting enough history.</div>'; return; }
+
+    const HOURS = 72;
+    const top = new Date(); top.setMinutes(0, 0, 0);
+    const slots = [];
+    for (let i = HOURS - 1; i >= 0; i--) slots.push(new Date(+top - i * 3600000));
+
+    // The reading closest to each hour mark, within half an hour of it.
+    let k = 0;
+    const vals = slots.map(t => {
+      while (k < pts.length - 1 && +pts[k + 1].t <= +t) k++;
+      let best = null, bestGap = Infinity;
+      for (let j = Math.max(0, k - 2); j < Math.min(pts.length, k + 3); j++) {
+        const gap = Math.abs(+pts[j].t - +t);
+        if (gap < bestGap) { bestGap = gap; best = pts[j]; }
+      }
+      return bestGap <= 1800000 ? best : null;
     });
-    const avg = sum.map((s, h) => (n[h] ? s / n[h] : null));
-    const have = avg.filter(v => v !== null);
-    if (have.length < 12) { box.innerHTML = '<div class="err">Not enough release history to profile the day.</div>'; return; }
 
+    const have = vals.filter(v => v !== null).map(v => v.v);
+    if (have.length < 12) { box.innerHTML = '<div class="err">The release gauge is not reporting enough history.</div>'; return; }
     const lo = Math.min.apply(null, have), hi = Math.max.apply(null, have);
-    const mid = lo + (hi - lo) * 0.45;                    // "generating" cutoff
-    const on = avg.map(v => v !== null && v > mid);
-    const nowH = new Date().getHours();
-
-    // Longest run of generating hours, wrapping past midnight.
-    let best = null;
-    for (let s = 0; s < 24; s++) {
-      if (!on[s] || on[(s + 23) % 24]) continue;          // only start at a rising edge
-      let len = 0;
-      while (len < 24 && on[(s + len) % 24]) len++;
-      if (!best || len > best.len) best = { start: s, len: len };
-    }
-    const hr = h => {
-      const d = new Date(); d.setHours(h, 0, 0, 0);
-      return d.toLocaleTimeString([], { hour: 'numeric' });
-    };
+    const cut = lo + (hi - lo) * 0.45;                 // clearly running versus clearly not
 
     const rawMax = hi * 1.08;
     const mag = Math.pow(10, Math.floor(Math.log10(rawMax)));
-    const yMax = Math.ceil(rawMax / (mag / 2)) * (mag / 2);   // round the axis to something readable
-    const W = 960, H = 190, padL = 56, padB = 34, padT = 14;
-    const bw = (W - padL - 14) / 24;
-    const bars = avg.map((v, h) => {
-      const x = padL + h * bw;
-      if (v === null) return '';
-      const bh = (v / yMax) * (H - padT - padB);
-      const y = H - padB - bh;
-      return `<rect class="dcbar ${on[h] ? 'on' : 'off'}${h === nowH ? ' now' : ''}"
-        x="${(x + 2).toFixed(1)}" y="${y.toFixed(1)}" width="${(bw - 4).toFixed(1)}" height="${Math.max(1, bh).toFixed(1)}" rx="2">
-        <title>${hr(h)} — ${F(v, 0)} cfs average</title></rect>`;
+    const yMax = Math.ceil(rawMax / (mag / 2)) * (mag / 2);
+    const W = 960, H = 210, padL = 56, padB = 40, padT = 14;
+    const bw = (W - padL - 14) / HOURS;
+    const hr = d => d.toLocaleTimeString([], { hour: 'numeric' }).replace(' ', '').toLowerCase();
+    const stamp = d => d.toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' });
+
+    const bars = slots.map((t, i) => {
+      const rec = vals[i];
+      if (!rec) return '';
+      const x = padL + i * bw;
+      const bh = (rec.v / yMax) * (H - padT - padB);
+      const on = rec.v > cut;
+      return `<rect class="dcbar ${on ? 'on' : 'off'}${i === HOURS - 1 ? ' now' : ''}"
+        x="${(x + 0.8).toFixed(1)}" y="${(H - padB - bh).toFixed(1)}" width="${(bw - 1.6).toFixed(1)}"
+        height="${Math.max(1, bh).toFixed(1)}" rx="1.5">
+        <title>${esc(stamp(new Date(rec.t)))} — ${F(rec.v, 0)} cfs</title></rect>`;
     }).join('');
-    const axis = [0, 3, 6, 9, 12, 15, 18, 21].map(h =>
-      `<text class="dcax" x="${(padL + h * bw + bw / 2).toFixed(1)}" y="${H - 12}" text-anchor="middle">${hr(h)}</text>`).join('');
+
+    // Midnight dividers and a label every six hours.
+    const marks = slots.map((t, i) => {
+      const h = t.getHours(), x = padL + i * bw;
+      let out = '';
+      if (h === 0) out += `<line class="dcday" x1="${x.toFixed(1)}" y1="${padT - 6}" x2="${x.toFixed(1)}" y2="${H - padB}"/>
+        <text class="dcax day" x="${(x + 4).toFixed(1)}" y="${padT + 2}">${t.toLocaleDateString([], { weekday: 'short' })}</text>`;
+      if (h % 6 === 0) out += `<text class="dcax" x="${(x + bw / 2).toFixed(1)}" y="${H - 22}" text-anchor="middle">${hr(t)}</text>`;
+      return out;
+    }).join('');
+
     const gl = [0, 0.5, 1].map(f => {
       const v = yMax * f, y = H - padB - f * (H - padT - padB);
       return `<line class="dcgrid" x1="${padL}" y1="${y.toFixed(1)}" x2="${W - 14}" y2="${y.toFixed(1)}"/>
         <text class="dcax" x="${padL - 8}" y="${(y + 4).toFixed(1)}" text-anchor="end">${F(v, 0)}</text>`;
     }).join('');
 
+    // Generating runs straight off the record, plus the real peak of each.
+    const runs = [];
+    for (let i = 0; i < HOURS; i++) {
+      if (!vals[i] || vals[i].v <= cut) continue;
+      if (i > 0 && vals[i - 1] && vals[i - 1].v > cut) continue;
+      let j = i, peak = 0;
+      while (j < HOURS && vals[j] && vals[j].v > cut) { peak = Math.max(peak, vals[j].v); j++; }
+      if (j - i >= 2) runs.push({ a: slots[i], b: slots[Math.min(j, HOURS - 1)], len: j - i, peak: peak });
+    }
+
+    const peakRec = pts.reduce((m, p) => (+p.t >= +slots[0] && (!m || p.v > m.v)) ? p : m, null);
+    const minRec = pts.reduce((m, p) => (+p.t >= +slots[0] && (!m || p.v < m.v)) ? p : m, null);
+    const last = pts[pts.length - 1];
+
     box.innerHTML = `
       <svg class="damclock" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img"
-           aria-label="Average release below West Point Dam by hour of day">${gl}${bars}${axis}</svg>
-      <p class="cap">${best && best.len < 24
-        ? `Over the last two weeks the powerhouse has typically run from about <b>${hr(best.start)}</b> to
-           <b>${hr((best.start + best.len) % 24)}</b> — roughly <b>${best.len} hours</b> a day — and sat near its minimum
-           release the rest of the time. Highlighted bars are the generating window; the outlined bar is the current hour
-           (${hr(nowH)}). Times are local (Eastern).`
-        : `Release has not followed a clean daily on/off pattern over the last two weeks — the dam has been passing
-           flow more steadily, which usually means high inflow rather than peaking.`}
-        This is an average of the actual gauge, not a published schedule: the Corps changes generation daily with
-        demand, rainfall and downstream needs, so treat it as a tendency, never as a guarantee before you get in the water.</p>`;
+           aria-label="Actual release below West Point Dam for each of the last 72 hours">${gl}${marks}${bars}</svg>
+      <p class="cap">Every bar is an <b>actual reading</b> from the gauge below the dam at the top of that hour — no
+        averaging. The last bar is <b>${F(last.v, 0)} cfs</b> at ${esc(stamp(new Date(last.t)))}.
+        ${peakRec && minRec ? `Over these three days the release peaked at <b>${F(peakRec.v, 0)} cfs</b>
+        (${esc(stamp(new Date(peakRec.t)))}) and bottomed out at <b>${F(minRec.v, 0)} cfs</b>
+        (${esc(stamp(new Date(minRec.t)))}).` : ''}
+        ${runs.length ? `Highlighted bars are the hours it was actually generating:
+          ${runs.slice(-4).map(r => `<b>${esc(r.a.toLocaleDateString([], { weekday: 'short' }))} ${hr(r.a)}–${hr(r.b)}</b>
+             (${r.len} h, peak ${F(r.peak, 0)} cfs)`).join(' · ')}.`
+          : 'The dam has not run a clear on/off cycle over these three days — it has been passing flow more steadily.'}
+        Times are local. Readings are provisional USGS values, roughly every 15 minutes.</p>`;
   }
 
   /* =====================================================================
