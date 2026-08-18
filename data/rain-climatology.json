@@ -104,8 +104,8 @@
   {
    "month": 8,
    "name": "Aug",
-   "cur_days": 16,
-   "cur_in": 1.88,
+   "cur_days": 17,
+   "cur_in": 1.89,
    "avg_days": 20.2,
    "avg_in": 4.42,
    "min_days": 13,
@@ -225,20 +225,20 @@
   },
   {
    "year": 2026,
-   "days": 129,
-   "inches": 36.88
+   "days": 130,
+   "inches": 36.89
   }
  ],
  "ytd": {
-  "days": 129,
-  "inches": 36.88,
+  "days": 130,
+  "inches": 36.89,
   "avg_days": 118.3,
   "avg_inches": 34.85,
   "min_days": 105,
   "max_days": 134,
   "min_inches": 21.99,
   "max_inches": 44.69,
-  "z_days": 1.15,
+  "z_days": 1.26,
   "z_inches": 0.32,
   "rank_days": 4,
   "rank_inches": 6,
@@ -257,6 +257,6 @@
  },
  "driest_gap": {
   "name": "Aug",
-  "gap": -2.54
+  "gap": -2.53
  }
 }

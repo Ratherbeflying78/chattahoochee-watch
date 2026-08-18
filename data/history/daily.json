@@ -71,10 +71,10 @@
 },
 {
 "date":"2026-08-18",
-"captured_utc":"2026-08-18T18:55:57+00:00",
+"captured_utc":"2026-08-18T19:08:45+00:00",
 "lanier__elev_ft":1066.34,
 "lanier__storage_kaf":1782.0,
-"buford_release__wtemp_c":11.0,
+"buford_release__wtemp_c":10.9,
 "buford_release__flow_cfs":606.0,
 "buford_release__stage_ft":-0.57,
 "buford_release__spc_uscm":72.0,
