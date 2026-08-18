@@ -12,7 +12,7 @@ in a single view — no account, no API key, no backend server.
 |---|---|
 | **Lake Now** | West Point Lake pool elevation against the seasonal guide curve, 24-hour and 7-day change, storage, the inflow/outflow water budget, and upstream Lake Lanier storage. |
 | **River Profile** | An interactive map of the real river — geographically accurate centerline and lake shorelines from OpenStreetMap — with every active gauge plotted in place. Switch between streamflow, stage/pool, water temperature and water quality; markers recolor and resize, and clicking one opens every reading that gauge reports. Below it, the same gauges as a downstream-ordered table plus a 7-day daily-average streamflow bar chart. |
-| **Water Quality** | Chattahoochee Riverkeeper's lab-cultured E. coli — the Swim Guide access points, every sampling site on West Point Lake, and the basin's worst results — plus a pan-and-zoom map of the Franklin-to-West-Point-Dam reach with every sampling site plotted on real geography and coloured by its latest result, alongside live USGS BacteriALERT estimates at Atlanta and Norcross against the 235 cfu/100 mL contact-recreation threshold, plus turbidity, dissolved oxygen and pH. |
+| **Water Quality** | Built around a pan-and-zoom map of every Chattahoochee Riverkeeper sampling site, coloured by its latest lab-cultured E. coli result — switchable between the West Point Lake reach and the whole corridor, with clustered markers that carry the worst result they contain. Below it: live USGS BacteriALERT estimates at Atlanta and Norcross against the 235 cfu/100 mL contact-recreation threshold, the same Riverkeeper samples as tables, plus turbidity, dissolved oxygen and pH. |
 | **Weather** | Current conditions, the NWS 7-day forecast for LaGrange, a 10-day rain outlook, 7-day basin rainfall totals, and on-the-water station readings. |
 | **Cameras** | USGS streamgage cameras pointed at the water itself (Helen, Columbus, and basin tributaries), plus GDOT / 511GA roadway cameras at Chattahoochee crossings. |
 | **Rain vs Normal** | This year's rainfall at LaGrange compared month by month against the 2015–2025 baseline. |
@@ -62,9 +62,10 @@ python -m http.server 8000
 # open http://localhost:8000
 ```
 
-No build step. The scripts need nothing beyond the Python standard library. The one
-front-end dependency is [Leaflet](https://leafletjs.com) 1.9.4, vendored into
-`vendor/leaflet/` (BSD-2-Clause) so the site never depends on a CDN staying up.
+No build step. The scripts need nothing beyond the Python standard library. The front-end
+dependencies are [Leaflet](https://leafletjs.com) 1.9.4 (BSD-2-Clause) and
+[Leaflet.markercluster](https://github.com/Leaflet/Leaflet.markercluster) 1.5.3 (MIT),
+vendored into `vendor/` so the site never depends on a CDN staying up.
 Map tiles come from CARTO and Esri and are fetched by the visitor's browser.
 
 ## Gauges used

@@ -976,6 +976,12 @@
      which sidesteps the label-collision problem entirely at this density.
      ===================================================================== */
   const REACH = { s: 32.845, n: 33.335, w: -85.32, e: -84.96 };
+  // The corridor view widens to everything this dashboard tracks: the Lanier
+  // headwaters, metro Atlanta, and the run down to the West Point tailwater.
+  const CORRIDOR = { s: 32.83, n: 34.80, w: -85.45, e: -83.60 };
+  const SCOPES = { reach: REACH, corridor: CORRIDOR };
+  let REACH_SCOPE = 'reach';
+  const scopeBox = () => SCOPES[REACH_SCOPE];
   const CREEK_RE = /creek|tributary|wehadkee|branch|trib\b/i;
   const STALE_DAYS = 21;          // NWW samples weekly; older than this is not "current"
   let REACH_SEL = null;
@@ -989,8 +995,9 @@
   function reachSites() {
     const C = DATA.crk;
     if (!C || !C.nww) return [];
+    const B = scopeBox();
     return C.nww
-      .filter(s => s.lat >= REACH.s && s.lat <= REACH.n && s.lon >= REACH.w && s.lon <= REACH.e)
+      .filter(s => s.lat >= B.s && s.lat <= B.n && s.lon >= B.w && s.lon <= B.e)
       .filter(s => crkLatest(s))
       .sort((a, b) => b.lat - a.lat)                    // downstream order
       .map((s, i) => {
@@ -1187,7 +1194,8 @@
     const bad = fresh.filter(s => crkLatest(s).ec >= ECOLI_THRESHOLD).length;
     const stale = sites.length - fresh.length;
     const lakeN = sites.filter(s => !s.creek).length;
-    return `${sites.length} Riverkeeper sites in this reach — ${lakeN} on the river and lake
+    const where = REACH_SCOPE === 'reach' ? 'in this reach' : 'along the corridor';
+    return `${sites.length} Riverkeeper sites ${where} — ${lakeN} on the river and lake
       (circles) and ${sites.length - lakeN} on feeder creeks (squares). Of the ${fresh.length} sampled in the last
       ${STALE_DAYS} days, ${bad ? `<b>${bad}</b> came back at or above` : 'none reached'} the 235 MPN/100 mL contact
       limit.${stale ? ` ${stale} site${stale > 1 ? 's are' : ' is'} drawn faded because ${stale > 1 ? 'their' : 'its'}
@@ -1248,7 +1256,30 @@
       // Streets is the default: on a dark basemap the lake and its feeder creeks
       // are nearly invisible, and creek and road names are the point of this map.
       street.addTo(RMAP);
-      RLAYER = L.layerGroup().addTo(RMAP);
+      // Cluster the sites: metro Atlanta alone has ~90 within a few miles, which
+      // stacks into an unreadable blob at corridor zoom. Clusters carry the worst
+      // result they contain so a red group still reads as red from far out.
+      RLAYER = L.markerClusterGroup ? L.markerClusterGroup({
+        maxClusterRadius: () => (REACH_SCOPE === 'reach' ? 18 : 44),
+        showCoverageOnHover: false,
+        spiderfyOnMaxZoom: true,
+        disableClusteringAtZoom: 13,
+        iconCreateFunction: c => {
+          const kids = c.getAllChildMarkers();
+          const rank = { bad: 3, warn: 2, good: 1, dim: 0 };
+          let worst = 'dim';
+          kids.forEach(m => {
+            const k = (m.siteCls || 'dim');
+            if (rank[k] > rank[worst]) worst = k;
+          });
+          return L.divIcon({
+            className: '',
+            html: `<span class="rcl ${worst}">${kids.length}</span>`,
+            iconSize: [32, 32], iconAnchor: [16, 16],
+          });
+        },
+      }) : L.layerGroup();
+      RLAYER.addTo(RMAP);
       RGAUGES = L.layerGroup().addTo(RMAP);
 
       L.control.layers(
@@ -1282,8 +1313,13 @@
       const row = $('#reachList .rl.sel');
       if (row && row.scrollIntoView) row.scrollIntoView({ block: 'nearest' });
       if (site && RMARK[site.key]) {
-        if (!RMAP.getBounds().contains(RMARK[site.key].getLatLng())) RMAP.panTo(RMARK[site.key].getLatLng());
-        RMARK[site.key].openPopup();
+        const m = RMARK[site.key];
+        // A clustered marker is not on the map until its cluster is opened.
+        if (RLAYER.zoomToShowLayer) RLAYER.zoomToShowLayer(m, () => m.openPopup());
+        else {
+          if (!RMAP.getBounds().contains(m.getLatLng())) RMAP.panTo(m.getLatLng());
+          m.openPopup();
+        }
       } else {
         RMAP.closePopup();
       }
@@ -1292,6 +1328,7 @@
     sites.forEach(s => {
       const m = L.marker([s.lat, s.lon], { icon: siteIcon(s), title: `${s.no}. ${s.name}`, riseOnHover: true })
         .bindPopup(sitePopup(s), { className: 'rpopwrap', maxWidth: 300 });
+      m.siteCls = (judge(P.ecoli, crkLatest(s).ec) || { cls: 'dim' }).cls;
       m.on('click', () => { if (REACH_SEL !== s.key) select(s.key); });
       m.addTo(RLAYER);
       RMARK[s.key] = m;
@@ -1300,7 +1337,8 @@
     // The pool and tailwater gauges sit metres apart at the dam, so they would
     // overlap at every zoom level. Merge them into one pin.
     const seen = {};
-    STATIONS.filter(g => g.lat >= REACH.s && g.lat <= REACH.n && g.lon >= REACH.w && g.lon <= REACH.e)
+    STATIONS.filter(g => g.lat >= scopeBox().s && g.lat <= scopeBox().n &&
+                         g.lon >= scopeBox().w && g.lon <= scopeBox().e)
       .forEach(g => {
         const k = g.lat.toFixed(2) + ',' + g.lon.toFixed(2);
         if (seen[k]) { seen[k].push(g); return; }
@@ -1318,17 +1356,21 @@
 
     if (!RMAP._fitted) { fitReach(); RMAP._fitted = true; }
     renderReachList(sites, select);
-    $('#reachNote').innerHTML = reachNoteHTML(sites,
-      `Drag to pan and use the buttons — or ctrl and the scroll wheel — to zoom in on any creek mouth or boat ramp.
-       Switch to <b>Dark</b> to match the rest of the page or <b>Satellite</b> to see the shoreline itself.
-       Triangles are the USGS gauges that feed the rest of this dashboard.`);
+    $('#reachNote').innerHTML = reachNoteHTML(sites, REACH_SCOPE === 'reach'
+      ? `Drag to pan and use the buttons — or ctrl and the scroll wheel — to zoom in on any creek mouth or boat ramp.
+         Switch to <b>Dark</b> to match the rest of the page or <b>Satellite</b> to see the shoreline itself.
+         Triangles are the USGS gauges that feed the rest of this dashboard.`
+      : `This is the whole corridor Riverkeeper samples, from the Lanier headwaters through metro Atlanta down to
+         the West Point tailwater. The red cluster through Atlanta is urban creeks, not the river itself — zoom in
+         to see which creek each square sits on.`);
   }
 
   function fitReach() {
     if (!RMAP) return;
     const sites = reachSites();
+    if (!sites.length) return;
     const b = L.latLngBounds(sites.map(s => [s.lat, s.lon]));
-    b.extend([REACH.s + 0.01, -85.19]);            // keep the dam in frame
+    if (REACH_SCOPE === 'reach') b.extend([REACH.s + 0.01, -85.19]);   // keep the dam in frame
     RMAP.fitBounds(b, { padding: [24, 24] });
   }
 
@@ -1682,6 +1724,16 @@
     b.classList.add('active');
     MAP_METRIC = b.dataset.metric;
     renderMap();
+  }));
+
+  $$('#reachBar .mbtn').forEach(b => b.addEventListener('click', () => {
+    if (REACH_SCOPE === b.dataset.scope) return;
+    $$('#reachBar .mbtn').forEach(o => o.classList.remove('active'));
+    b.classList.add('active');
+    REACH_SCOPE = b.dataset.scope;
+    REACH_SEL = null;
+    if (RMAP) RMAP._fitted = false;              // re-frame for the new extent
+    renderReachMap();
   }));
 
   $$('#crkBar .mbtn').forEach(b => b.addEventListener('click', () => {

@@ -340,3 +340,35 @@ table.crk td.spk{padding:4px 10px;width:1%}
    it was stretching the tiny attribution flag to a quarter of the map. */
 #reachMap.slippy svg { width:auto; height:auto; max-height:none; }
 .leaflet-attribution-flag { width:12px !important; height:8px !important; display:inline-block !important; }
+
+/* ---- water quality: the map is the page, everything else supports it ---- */
+.card.hero { padding:18px 20px 16px; border-color:#2a4368;
+  background:linear-gradient(180deg,#101d33 0%,#0d1729 100%); }
+.card.hero h3 { font-size:20px; }
+.card.hero .reachlayout { grid-template-columns:minmax(320px,1.55fr) minmax(280px,1fr); }
+.card.hero #reachMap.slippy { height:700px; }
+.card.hero .reachlist { max-height:700px; }
+@media(max-width:860px){ .card.hero #reachMap.slippy{height:460px} .card.hero .reachlist{max-height:340px} }
+
+.maplegend { display:flex; flex-wrap:wrap; gap:14px; margin-top:12px;
+  font-size:11.5px; color:var(--dim); align-items:center }
+.maplegend span { display:inline-flex; align-items:center; gap:6px }
+.lg { display:inline-block; width:11px; height:11px; background:#7c8aa0;
+  border:1.5px solid rgba(4,16,31,.75) }
+.lg.dot { border-radius:50% }
+.lg.sq { border-radius:3px }
+.lg.good { background:var(--good) } .lg.warn { background:var(--warn) } .lg.bad { background:var(--bad) }
+.lg.dimmed { opacity:.45; border-style:dashed }
+.lg.tri { width:0;height:0;background:none;border:none;border-left:6px solid transparent;
+  border-right:6px solid transparent;border-bottom:10px solid #7dd3fc }
+.seclabel { margin:22px 2px 8px; font-size:11px; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--dim2); font-weight:600 }
+
+/* cluster bubbles, coloured by the worst result they contain */
+.rcl { display:flex; align-items:center; justify-content:center; width:32px; height:32px;
+  border-radius:50%; font-size:12px; font-weight:700; color:#04101f; background:#7c8aa0;
+  border:2px solid rgba(4,16,31,.7); box-shadow:0 0 0 4px rgba(124,138,160,.25); cursor:pointer }
+.rcl.good { background:var(--good); box-shadow:0 0 0 4px rgba(74,222,128,.22) }
+.rcl.warn { background:var(--warn); box-shadow:0 0 0 4px rgba(251,191,36,.22) }
+.rcl.bad  { background:var(--bad);  box-shadow:0 0 0 4px rgba(248,113,113,.25) }
+.leaflet-cluster-anim .leaflet-marker-icon { transition:transform .25s ease-out, opacity .25s ease-in }

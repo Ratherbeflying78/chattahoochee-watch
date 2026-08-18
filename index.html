@@ -6,6 +6,7 @@
 <title>Chattahoochee Watch — West Point Lake &amp; River, Atlanta to LaGrange</title>
 <meta name="description" content="Live water levels, streamflow, water quality and weather for West Point Lake and the Chattahoochee River from Atlanta to LaGrange, GA."/>
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css"/>
+<link rel="stylesheet" href="vendor/markercluster/MarkerCluster.css"/>
 <link rel="stylesheet" href="assets/styles.css?v=dev"/>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>"/>
 </head>
@@ -99,11 +100,36 @@
   <!-- ================= QUALITY ================= -->
   <section class="panel" id="panel-quality">
     <div class="card alert" id="qualityVerdict"><div class="skel">Assessing water quality…</div></div>
+    <div class="card hero">
+      <h3>The river, sampled — where the bacteria actually are</h3>
+      <p class="cap">Every Chattahoochee Riverkeeper sampling site plotted in place and colored by its most recent
+        lab-cultured E. coli result. Click any marker or list entry for that site's history. Everything further
+        down this page is context for what you see here.</p>
+      <div class="metricbar" id="reachBar">
+        <button class="mbtn active" data-scope="reach" type="button">West Point Lake &amp; Franklin</button>
+        <button class="mbtn" data-scope="corridor" type="button">Whole corridor</button>
+      </div>
+      <div class="reachlayout">
+        <div class="mapbox" id="reachMap"><div class="skel h">Loading map…</div></div>
+        <div class="reachlist" id="reachList"></div>
+      </div>
+      <div class="maplegend">
+        <span><i class="lg dot good"></i> under 126 MPN</span>
+        <span><i class="lg dot warn"></i> 126–234</span>
+        <span><i class="lg dot bad"></i> 235 and above</span>
+        <span><i class="lg dot dimmed"></i> older than 21 days</span>
+        <span><i class="lg dot"></i> river or lake</span>
+        <span><i class="lg sq"></i> feeder creek</span>
+        <span><i class="lg tri"></i> USGS gauge</span>
+      </div>
+      <p class="cap" id="reachNote"></p>
+    </div>
+    <p class="seclabel">Supporting context — live sensors upstream</p>
     <div class="grid" id="qualityKpis"></div>
     <div class="card">
-      <h3>Chattahoochee Riverkeeper — lab-tested bacteria</h3>
+      <h3>The same samples as tables</h3>
       <p class="cap">Riverkeeper's <b>Neighborhood Water Watch</b> volunteers collect samples every week and culture
-        them in a lab. These are measured counts, not the modelled estimates above — the strongest bacteria data
+        them in a lab. These are measured counts, not the modelled estimates below — the strongest bacteria data
         available for this river. Their summer <b>Swim Guide</b> applies the same tests to popular access points.</p>
       <div class="metricbar" id="crkBar">
         <button class="mbtn active" data-crk="swim" type="button">Swim Guide</button>
@@ -113,17 +139,6 @@
       </div>
       <div id="crkBody"><div class="skel">Loading Riverkeeper samples…</div></div>
       <p class="cap" id="crkNote"></p>
-    </div>
-    <div class="card">
-      <h3>Where these samples come from — Franklin down to West Point Dam</h3>
-      <p class="cap">The lake inflow at Franklin, the length of West Point Lake, and the tailwater at West Point,
-        with every Riverkeeper sampling site plotted in place and colored by its most recent E. coli result.
-        Numbers match the list beside the map — click either one.</p>
-      <div class="reachlayout">
-        <div class="mapbox" id="reachMap"><div class="skel h">Loading map…</div></div>
-        <div class="reachlist" id="reachList"></div>
-      </div>
-      <p class="cap" id="reachNote"></p>
     </div>
     <div class="card">
       <h3>Bacteria — E. coli at Atlanta &amp; Norcross</h3>
@@ -269,6 +284,7 @@
 </main>
 
 <script src="vendor/leaflet/leaflet.js"></script>
+<script src="vendor/markercluster/leaflet.markercluster.js"></script>
 <script src="assets/charts.js?v=dev"></script>
 <script src="assets/app.js?v=dev"></script>
 </body>
