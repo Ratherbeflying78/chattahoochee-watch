@@ -396,3 +396,94 @@ table.crk td.spk{padding:4px 10px;width:1%}
 /* view toggle inside a metric bar — pushed to the trailing edge */
 .barspace { flex:1 1 auto }
 .viewbar { display:inline-flex; gap:6px }
+/* ===================== THE DAM ===================== */
+.damcard { overflow:hidden }
+.damsvg { display:block; width:100%; height:auto; margin-top:8px; border-radius:12px;
+  border:1px solid #1d2b45; background:#06101f }
+.damsvg text { font-family:inherit }
+
+.damsvg .druler line { stroke:#33456a; stroke-width:1.2 }
+.damsvg .dtick text { fill:#6b829f; font-size:10.5px; font-weight:600 }
+.damsvg .drtitle { fill:#8fa6c4; font-size:10px; font-weight:800; letter-spacing:.12em }
+
+.damsvg .dbed { fill:#20304c; stroke:#33456a; stroke-width:1 }
+.damsvg .dwave path { fill:none; stroke:rgba(198,240,255,.5); stroke-width:2 }
+.damsvg .dwave.slow path { animation:damwave 7s linear infinite }
+.damsvg .dwave.fast path { stroke:rgba(198,240,255,.24); animation:damwave 4.2s linear infinite reverse }
+@keyframes damwave { from { transform:translateX(0) } to { transform:translateX(-40px) } }
+
+.damsvg .dlvl line { stroke-width:1.4; stroke-dasharray:7 6; opacity:.9 }
+.damsvg .dlvl .dleader { stroke-dasharray:none; opacity:.6 }
+.damsvg .dlvl text { font-size:12px; font-weight:700; paint-order:stroke;
+  stroke:#06101f; stroke-width:3.5px; stroke-linejoin:round }
+.damsvg .dlvl.flood line { stroke:#f87171 } .damsvg .dlvl.flood text { fill:#f87171 }
+.damsvg .dlvl.full  line { stroke:#93c5fd } .damsvg .dlvl.full  text { fill:#93c5fd }
+.damsvg .dlvl.guide line { stroke:#fbbf24 } .damsvg .dlvl.guide text { fill:#fbbf24 }
+.damsvg .dlvl.min   line { stroke:#94a3b8 } .damsvg .dlvl.min   text { fill:#94a3b8 }
+
+.damsvg .dnow line { stroke:#eafaff; stroke-width:2.5 }
+.damsvg .dchip { fill:rgba(5,15,29,.92); stroke:#7dd3fc; stroke-width:1.6 }
+.damsvg .dchipbig { fill:#eaf7ff; font-size:24px; font-weight:800 }
+.damsvg .dchipunit { font-size:14px; font-weight:700; fill:#9fb4d0 }
+.damsvg .dchipsub { fill:#9fb4d0; font-size:10.5px; font-weight:700; letter-spacing:.04em }
+.damsvg .dchipsub.up { fill:#4ade80 } .damsvg .dchipsub.down { fill:#fbbf24 }
+
+.damsvg .dlabel { fill:#cfe0f2; font-size:11.5px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.09em; paint-order:stroke; stroke:#06101f; stroke-width:3.5px; stroke-linejoin:round }
+.damsvg .dbig { font-size:27px; font-weight:800; paint-order:stroke; stroke:#06101f;
+  stroke-width:4px; stroke-linejoin:round }
+.damsvg .dbig.in { fill:#4ade80 } .damsvg .dbig.out { fill:#7dd3fc }
+.damsvg .dsub { fill:#b6c8dd; font-size:11.5px; paint-order:stroke; stroke:#06101f;
+  stroke-width:3.5px; stroke-linejoin:round }
+.damsvg .dfoot { fill:#5c7291; font-size:10.5px }
+
+.damsvg .dchev { fill:none; stroke:#4ade80; stroke-width:3.5; stroke-linecap:round; stroke-linejoin:round;
+  opacity:0; animation:damchev var(--sp,3s) linear infinite; animation-delay:var(--d,0s) }
+.damsvg .dchev.out { stroke:#7dd3fc }
+@keyframes damchev {
+  0% { opacity:0; transform:translateX(-16px) } 35% { opacity:.95 }
+  100% { opacity:0; transform:translateX(34px) } }
+
+.damsvg .dcrestcap { fill:#93a3bd }
+.damsvg .droad { stroke:#dbe7f5; stroke-width:1.6; stroke-dasharray:16 12; opacity:.75 }
+.damsvg .dbay { fill:#16233a; stroke:#8b9bb5; stroke-width:1.2 }
+.damsvg .dgate { fill:#4a6183; stroke:#cbd5e1; stroke-width:1.6 }
+.damsvg .darm { stroke:#cbd5e1; stroke-width:2 }
+.damsvg .dintake { fill:#16233a; stroke:#8fd7f0; stroke-width:1.4 }
+.damsvg .dpen { fill:none; stroke:#8fd7f0; stroke-width:12; stroke-linecap:round;
+  stroke-linejoin:round; opacity:.5 }
+.damsvg .dhouse { fill:#46556f; stroke:#93a3bd; stroke-width:1.4 }
+.damsvg .dhouseroof { fill:#93a3bd }
+.damsvg .dpart { fill:#c8d6e8; font-size:10px; font-weight:800; letter-spacing:.13em;
+  paint-order:stroke; stroke:#06101f; stroke-width:3px; stroke-linejoin:round }
+.damsvg .dpart2 { fill:#93a3bd; font-size:9px; font-weight:700; letter-spacing:.13em }
+.damsvg .dturb .dhub { fill:rgba(8,20,36,.8); stroke:#e2eaf5; stroke-width:2 }
+.damsvg .dturb line { stroke:#e2eaf5; stroke-width:2.6; stroke-linecap:round }
+.damsvg .dturb .dcap { fill:#e2eaf5 }
+.damsvg .dturb.spin { animation:damspin 1.05s linear infinite; transform-box:fill-box; transform-origin:center }
+@keyframes damspin { to { transform:rotate(360deg) } }
+
+.damsvg .djetp { fill:#eafcff; opacity:0; animation:damjet var(--dur,1.6s) linear infinite;
+  animation-delay:var(--d,0s) }
+@keyframes damjet {
+  0% { opacity:0; transform:translate(var(--x0),var(--y0)) }
+  10% { opacity:.95 } 80% { opacity:.7 }
+  100% { opacity:0; transform:translate(var(--x1),var(--y1)) } }
+.damsvg .dfoam { fill:#e6faff; opacity:0; animation:damfoam 2.3s ease-out infinite;
+  animation-delay:var(--d,0s) }
+@keyframes damfoam { 0% { opacity:.5 } 100% { opacity:0; transform:translate(70px,-8px) } }
+
+.damsvg .dstatus rect { fill:rgba(5,15,29,.94); stroke-width:1.6 }
+.damsvg .dstatus text { font-size:12px; font-weight:800; letter-spacing:.09em }
+.damsvg .dstatus.on rect { stroke:#4ade80 } .damsvg .dstatus.on text { fill:#4ade80 }
+.damsvg .dstatus.on circle { fill:#4ade80; animation:dampulse 1.4s ease-in-out infinite }
+.damsvg .dstatus.off rect { stroke:#5c7291 } .damsvg .dstatus.off text { fill:#9fb4d0 }
+.damsvg .dstatus.off circle { fill:#5c7291 }
+@keyframes dampulse { 0%,100% { opacity:1 } 50% { opacity:.2 } }
+
+@media (prefers-reduced-motion: reduce) {
+  .damsvg .dwave path, .damsvg .dchev, .damsvg .djetp, .damsvg .dfoam,
+  .damsvg .dturb.spin, .damsvg .dstatus.on circle { animation:none }
+  .damsvg .djetp, .damsvg .dchev { opacity:.85 }
+}.damsvg .dmouth { fill:#0b1728; stroke:#8fd7f0; stroke-width:1.4 }
+.damsvg .djetbody { filter:drop-shadow(0 0 6px rgba(140,220,255,.45)) }.damsvg .dbed.sub { fill:#1b2b45; fill-opacity:.92; stroke:#3c527a; stroke-width:1 }.damsvg .dtitle { fill:#8fa6c4; font-size:11px; font-weight:800; letter-spacing:.14em }

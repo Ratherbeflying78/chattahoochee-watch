@@ -25,6 +25,7 @@
   <nav class="wrap tabs" id="tabs">
     <button class="tab active" data-panel="now">Lake Now</button>
     <button class="tab" data-panel="river">River water flow</button>
+    <button class="tab" data-panel="dam">The Dam</button>
     <button class="tab" data-panel="quality">Water Quality</button>
     <button class="tab" data-panel="weather">Weather</button>
     <button class="tab" data-panel="cams">Cameras</button>
@@ -59,6 +60,30 @@
         <p class="cap">Lanier controls what eventually reaches West Point. Full pool is 1,071 ft.</p>
         <div id="lanier"><div class="skel">Loading…</div></div>
       </div>
+    </div>
+  </section>
+
+  <!-- ================= DAM ================= -->
+  <section class="panel" id="panel-dam">
+    <div class="card hero damcard">
+      <h3>West Point Dam, right now</h3>
+      <p class="cap">A live cross-section of the dam, drawn to real elevations. The lake is on the left at its
+        actual pool level against the seasonal guide curve; the tailwater is on the right at its own gauged
+        elevation; and the water leaving through the powerhouse animates at the speed the dam is actually
+        releasing. Nothing here is decorative — every level, every arrow and the speed of the jet come from live
+        USGS readings.</p>
+      <div id="damStage"><div class="skel h">Reading the dam…</div></div>
+      <p class="cap" id="damNote"></p>
+    </div>
+
+    <div class="grid" id="damKpis"></div>
+
+    <div class="card">
+      <h3>In versus out — last 3 days</h3>
+      <p class="cap">Inflow at Franklin against release below the dam, at full instantaneous resolution. The
+        spikes are hydropower generation: West Point runs in pulses, so the release can swing from a few hundred
+        to several thousand cfs within one day.</p>
+      <div id="damChart" class="chartbox"><div class="skel">Loading…</div></div>
     </div>
   </section>
 

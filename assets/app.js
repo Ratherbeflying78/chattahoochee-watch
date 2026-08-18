@@ -308,6 +308,274 @@
   }
 
   /* =====================================================================
+     PANEL 1b — THE DAM
+     A cross-section of West Point Dam drawn to true elevations. Both the
+     pool (02339400) and the tailwater (02339402) report on the same datum,
+     so the ~75 ft head across the structure is real, not styling.
+     ===================================================================== */
+  const DAM = {
+    W: 1100, H: 580,
+    top: 44, bot: 512,           // pixel bounds of the elevation scale
+    eLo: 540, eHi: 664,          // elevation domain, ft (project datum)
+    axis: 80,                    // x of the elevation ruler
+    xL: 520, xR: 680,            // upstream and downstream faces of the dam
+    xPh: 800                     // downstream wall of the powerhouse
+  };
+  const dY = ft => DAM.bot - ((ft - DAM.eLo) / (DAM.eHi - DAM.eLo)) * (DAM.bot - DAM.top);
+
+  /* A wavy surface line, repeated so it can slide sideways forever. */
+  function damWave(y, amp, width) {
+    let d = `M0 ${y.toFixed(1)}`;
+    for (let x = 0; x <= width + 80; x += 40) d += ` q 10 ${(-amp).toFixed(1)} 20 0 t 20 0`;
+    return d;
+  }
+
+  /* Reference elevations crowd together — 622 to 641 is only a few dozen
+     pixels — so labels get pushed apart vertically before they are drawn. */
+  function damLabels(list) {
+    const items = list.filter(l => l.ft <= DAM.eHi - 3 && l.ft >= DAM.eLo + 2)
+      .map(l => Object.assign({ y: dY(l.ft) }, l)).sort((a, b) => a.y - b.y);
+    let last = -1e6;
+    items.forEach(it => { it.ly = Math.max(it.y, last + 19); last = it.ly; });
+    return items;
+  }
+
+  function renderDam() {
+    const stage = $('#damStage');
+    if (!stage) return;
+    const elev = get('02339400', P.elev);
+    if (!elev) { stage.innerHTML = '<div class="err">The West Point Lake gauge is not reporting right now.</div>'; return; }
+
+    const pool = elev.latest;
+    const target = guideCurve(new Date());
+    const twRec = get('02339402', P.stage);
+    const tw = twRec ? twRec.latest : null;
+
+    const outRec = get('02339500', P.flow), inRec = get('02338500', P.flow);
+    const outNow = outRec ? outRec.latest : null, inNow = inRec ? inRec.latest : null;
+    const outMean = mean24(outRec, 24), inMean = mean24(inRec, 24);
+    const outRange = range24(outRec, 24);
+    const stor = get('02339400', P.storage);
+    const d24 = trend(elev.points, 24);
+
+    // Is the powerhouse running? A peaking project sits near its daily minimum
+    // off-peak, so compare the current release against today's own range.
+    const gen = (outNow !== null && outRange && outRange.max > outRange.min * 1.4)
+      ? outNow > outRange.min + (outRange.max - outRange.min) * 0.45 : null;
+
+    const clampE = ft => Math.max(DAM.eLo + 3, Math.min(DAM.eHi - 4, ft));
+    const yPool = dY(clampE(pool));
+    const yTw = tw === null ? dY(560) : dY(clampE(Math.min(tw, pool - 1)));
+
+    // Everything about the jet — width, particle speed, spray — scales with the
+    // release the dam is actually making right now.
+    const q = outNow === null ? (outMean || 0) : outNow;
+    const jet = Math.max(0.08, Math.min(1, q / 9000));           // ~9,000 cfs is full generation
+    const jetH = 11 + jet * 42;
+    const dur = (2.7 - jet * 2.05).toFixed(2);
+    const inQ = inNow === null ? (inMean || 0) : inNow;
+    const inSp = (3.6 - Math.min(1, inQ / 6000) * 2.3).toFixed(2);
+
+    const W = DAM.W, H = DAM.H, xL = DAM.xL, xR = DAM.xR, xPh = DAM.xPh, AX = DAM.axis;
+    const crest = dY(654), sill = dY(641), gateTop = dY(653);
+    const outlet = dY(566), phTop = dY(612);
+    const bedDam = dY(548), bedFar = dY(566), bedTail = dY(550);
+
+    const ruler = [];
+    for (let ft = 550; ft <= 660; ft += 10) {
+      const y = dY(ft);
+      ruler.push(`<g class="dtick"><line x1="${AX - 7}" y1="${y.toFixed(1)}" x2="${AX}" y2="${y.toFixed(1)}"/>
+        <text x="${AX - 11}" y="${(y + 3.5).toFixed(1)}" text-anchor="end">${ft}</text></g>`);
+    }
+
+    const marks = damLabels([
+      { ft: WP.floodTop, cls: 'flood', txt: `Flood pool ${WP.floodTop} ft` },
+      { ft: WP.full, cls: 'full', txt: `Summer full ${WP.full} ft` },
+      { ft: target, cls: 'guide', txt: `Guide curve ${F(target, 1)} ft` },
+      { ft: WP.min, cls: 'min', txt: `Minimum ${WP.min} ft` }
+    ]).map(m => `<g class="dlvl ${m.cls}">
+        <line x1="${AX}" y1="${m.y.toFixed(1)}" x2="${xL - 6}" y2="${m.y.toFixed(1)}"/>
+        ${Math.abs(m.ly - m.y) > 1 ? `<line class="dleader" x1="${xL - 6}" y1="${m.y.toFixed(1)}" x2="${xL - 14}" y2="${m.ly.toFixed(1)}"/>` : ''}
+        <text x="${xL - 18}" y="${(m.ly + 4).toFixed(1)}" text-anchor="end">${esc(m.txt)}</text>
+      </g>`).join('');
+
+    const diff = pool - target;
+    const head = tw === null ? null : pool - tw;
+    const net = (inMean !== null && outMean !== null) ? inMean - outMean : null;
+    const pctFull = Math.max(0, Math.min(100, ((pool - WP.min) / (WP.floodTop - WP.min)) * 100));
+
+    stage.innerHTML = `
+    <svg class="damsvg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img"
+         aria-label="Cross-section of West Point Dam: pool ${F(pool, 2)} feet, tailwater ${tw === null ? 'unknown' : F(tw, 2) + ' feet'}, releasing ${F(q, 0)} cubic feet per second">
+      <defs>
+        <linearGradient id="dsky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#0c2039"/><stop offset="1" stop-color="#06101f"/></linearGradient>
+        <linearGradient id="dlake" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#3fb0ef" stop-opacity=".92"/>
+          <stop offset="1" stop-color="#0a2f52" stop-opacity=".92"/></linearGradient>
+        <linearGradient id="dtail" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#5fd2ea" stop-opacity=".9"/>
+          <stop offset="1" stop-color="#0b3a4e" stop-opacity=".9"/></linearGradient>
+        <linearGradient id="dcon" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#5c6b85"/><stop offset=".45" stop-color="#75849e"/>
+          <stop offset="1" stop-color="#3f4c63"/></linearGradient>
+        <linearGradient id="djet" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#dff8ff" stop-opacity=".95"/>
+          <stop offset="1" stop-color="#7fd8f5" stop-opacity=".15"/></linearGradient>
+        <filter id="dglow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="4" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <clipPath id="clipLake"><rect x="${AX}" y="${DAM.top}" width="${xL - AX}" height="${DAM.bot - DAM.top}"/></clipPath>
+        <clipPath id="clipTail"><rect x="${xPh}" y="${DAM.top}" width="${W - xPh - 16}" height="${DAM.bot - DAM.top}"/></clipPath>
+      </defs>
+
+      <rect x="0" y="0" width="${W}" height="${H}" fill="url(#dsky)"/>
+
+      <!-- elevation ruler -->
+      <g class="druler">
+        <line x1="${AX}" y1="${DAM.top}" x2="${AX}" y2="${DAM.bot}"/>
+        ${ruler.join('')}
+        <text class="drtitle" x="${AX - 11}" y="${DAM.top - 12}" text-anchor="end">FT</text>
+        <text class="dtitle" x="${AX + 8}" y="${DAM.top - 10}">WEST POINT DAM — LIVE CROSS-SECTION</text>
+      </g>
+
+      <!-- ===================== lake side ===================== -->
+      <g clip-path="url(#clipLake)">
+        <rect x="${AX}" y="${yPool.toFixed(1)}" width="${xL - AX}" height="${(DAM.bot - yPool).toFixed(1)}" fill="url(#dlake)"/>
+        <path class="dbed sub" d="M${AX} ${DAM.bot} L${AX} ${bedFar.toFixed(1)}
+          C ${AX + 180} ${(bedFar + 24).toFixed(1)}, ${xL - 190} ${dY(553).toFixed(1)}, ${xL} ${bedDam.toFixed(1)}
+          L${xL} ${DAM.bot} Z"/>
+        <g class="dwave slow"><path d="${damWave(yPool, 5, xL)}"/></g>
+        <g class="dwave fast"><path d="${damWave(yPool + 4, 3.2, xL)}"/></g>
+      </g>
+
+      ${marks}
+
+      <!-- live pool line and readout -->
+      <g class="dnow">
+        <line x1="${AX}" y1="${yPool.toFixed(1)}" x2="${xL}" y2="${yPool.toFixed(1)}" filter="url(#dglow)"/>
+        <g transform="translate(${AX + 20} ${(yPool + 16).toFixed(1)})">
+          <rect class="dchip" x="0" y="0" width="248" height="46" rx="9"/>
+          <text class="dchipbig" x="14" y="31">${F(pool, 2)}<tspan class="dchipunit"> ft</tspan></text>
+          <text class="dchipsub" x="124" y="20">POOL ELEVATION</text>
+          <text class="dchipsub ${diff >= 0 ? 'up' : 'down'}" x="124" y="35">${diff >= 0 ? '+' : ''}${F(diff, 2)} ft vs guide curve</text>
+        </g>
+      </g>
+
+      <!-- inflow, deep in the lake -->
+      <g class="dflowin" style="--sp:${inSp}s">
+        <text class="dlabel" x="${AX + 20}" y="${dY(586).toFixed(1)}">Inflow from Franklin</text>
+        <text class="dbig in" x="${AX + 20}" y="${dY(578).toFixed(1)}">${inMean === null ? '—' : F(inMean, 0) + ' cfs'}</text>
+        <text class="dsub" x="${AX + 20}" y="${dY(572).toFixed(1)}">24-hour average${inNow === null ? '' : ' · ' + F(inNow, 0) + ' now'}</text>
+        ${[0, 1, 2, 3].map(i => `<path class="dchev" style="--d:${(i * 0.42).toFixed(2)}s"
+          d="M ${300 + i * 30} ${dY(582).toFixed(1)} l 15 9 l -15 9"/>`).join('')}
+      </g>
+
+      <!-- ===================== the structure ===================== -->
+      <g class="dstruct">
+        <!-- one continuous mass: gravity section, sloping toe, powerhouse substructure -->
+        <path fill="url(#dcon)" stroke="#93a3bd" stroke-width="1.2" d="M${xL} ${DAM.bot}
+          L${xL} ${crest.toFixed(1)} L${xR} ${crest.toFixed(1)}
+          L${xR} ${dY(608).toFixed(1)} L${(xR + 54)} ${dY(590).toFixed(1)}
+          L${xPh} ${dY(590).toFixed(1)} L${xPh} ${DAM.bot} Z"/>
+        <rect class="dcrestcap" x="${xL - 10}" y="${(crest - 12).toFixed(1)}" width="${xR - xL + 22}" height="12" rx="3"/>
+        <line class="droad" x1="${xL - 6}" y1="${(crest - 6).toFixed(1)}" x2="${xR + 8}" y2="${(crest - 6).toFixed(1)}"/>
+        <text class="dpart" x="${xL + 4}" y="${(crest - 20).toFixed(1)}">TOP OF DAM 654 FT</text>
+
+        <!-- spillway bay with a tainter gate holding back the flood pool -->
+        <rect class="dbay" x="${xL + 24}" y="${gateTop.toFixed(1)}" width="86" height="${(sill - gateTop).toFixed(1)}"/>
+        <path class="dgate" d="M${xL + 26} ${gateTop.toFixed(1)} A 90 90 0 0 1 ${xL + 26} ${sill.toFixed(1)} Z"/>
+        <line class="darm" x1="${xL + 30}" y1="${((gateTop + sill) / 2).toFixed(1)}" x2="${xL + 96}" y2="${(gateTop + 6).toFixed(1)}"/>
+        <line class="darm" x1="${xL + 30}" y1="${((gateTop + sill) / 2).toFixed(1)}" x2="${xL + 96}" y2="${(sill - 6).toFixed(1)}"/>
+        <text class="dpart" x="${xL + 24}" y="${(sill + 16).toFixed(1)}">SPILLWAY GATE</text>
+
+        <!-- intake, penstock, turbine and draft tube -->
+        <rect class="dintake" x="${xL - 13}" y="${dY(616).toFixed(1)}" width="13" height="${(dY(598) - dY(616)).toFixed(1)}" rx="2"/>
+        <path class="dpen" d="M${xL} ${dY(608).toFixed(1)} L${(xR + 44)} ${dY(608).toFixed(1)}
+          L${(xR + 74)} ${dY(590).toFixed(1)} L${(xR + 74)} ${dY(572).toFixed(1)} L${xPh} ${outlet.toFixed(1)}"/>
+        <path class="dhouse" d="M${xR + 54} ${dY(590).toFixed(1)} L${xR + 54} ${phTop.toFixed(1)}
+          L${xPh} ${phTop.toFixed(1)} L${xPh} ${dY(590).toFixed(1)} Z"/>
+        <rect class="dhouseroof" x="${xR + 48}" y="${(phTop - 11).toFixed(1)}" width="${xPh - xR - 42}" height="11" rx="3"/>
+        <g class="dturb ${gen ? 'spin' : ''}" transform="translate(${(xR + 74)} ${dY(601).toFixed(1)})">
+          <circle class="dhub" r="20"/>
+          ${[0, 45, 90, 135, 180, 225, 270, 315].map(a => `<line y2="-20" transform="rotate(${a})"/>`).join('')}
+          <circle class="dcap" r="4"/>
+        </g>
+        <rect class="dmouth" x="${xPh - 6}" y="${(outlet - jetH / 2 - 3).toFixed(1)}" width="8" height="${(jetH + 6).toFixed(1)}" rx="2"/>
+        <text class="dpart" x="${xR + 58}" y="${(phTop - 19).toFixed(1)}">POWERHOUSE</text>
+      </g>
+
+      <!-- ===================== tailwater ===================== -->
+      <g clip-path="url(#clipTail)">
+        <rect x="${xPh}" y="${yTw.toFixed(1)}" width="${W - xPh}" height="${(DAM.bot - yTw).toFixed(1)}" fill="url(#dtail)"/>
+        <path class="dbed sub" d="M${xPh} ${DAM.bot} L${xPh} ${dY(552).toFixed(1)}
+          C ${xPh + 120} ${(bedTail + 6).toFixed(1)}, ${W - 220} ${bedTail.toFixed(1)}, ${W} ${(bedTail - 6).toFixed(1)}
+          L${W} ${DAM.bot} Z"/>
+        <g class="dwave fast"><path d="${damWave(yTw, 3.6, W - xPh)}" transform="translate(${xPh} 0)"/></g>
+
+        <!-- the jet, thickness set by the live release -->
+        <path class="djetbody" fill="url(#djet)" d="M${xPh} ${(outlet - jetH / 2).toFixed(1)}
+          C ${xPh + 70} ${(outlet - jetH / 2).toFixed(1)}, ${xPh + 100} ${(yTw - 8).toFixed(1)}, ${xPh + 170} ${(yTw - 3).toFixed(1)}
+          L ${xPh + 170} ${(yTw + 14).toFixed(1)}
+          C ${xPh + 100} ${(yTw + 12).toFixed(1)}, ${xPh + 70} ${(outlet + jetH / 2).toFixed(1)}, ${xPh} ${(outlet + jetH / 2).toFixed(1)} Z"/>
+        ${Array.from({ length: 14 }, (_, i) => `<circle class="djetp" r="${(2 + (i % 4) * 0.9).toFixed(1)}"
+          style="--d:${(i * 0.16).toFixed(2)}s;--dur:${dur}s;--x0:${xPh}px;--y0:${(outlet - jetH / 3 + (i % 5) * (jetH / 6)).toFixed(1)}px;--x1:${xPh + 180 + (i % 4) * 45}px;--y1:${(yTw + 6 + (i % 5) * 4).toFixed(1)}px"/>`).join('')}
+        ${[0, 1, 2, 3, 4].map(i => `<circle class="dfoam" cx="${xPh + 30 + i * 30}" cy="${(yTw + 5).toFixed(1)}"
+          r="${4 + i * 1.6}" style="--d:${(i * 0.34).toFixed(2)}s"/>`).join('')}
+        ${[0, 1, 2].map(i => `<path class="dchev out" style="--sp:${dur}s;--d:${(i * 0.4).toFixed(2)}s"
+          d="M ${W - 210 + i * 30} ${(yTw + 40).toFixed(1)} l 15 9 l -15 9"/>`).join('')}
+      </g>
+
+      <g class="dflowout">
+        <text class="dlabel" x="${W - 22}" y="${(yTw - 70).toFixed(1)}" text-anchor="end">Release below the dam</text>
+        <text class="dbig out" x="${W - 22}" y="${(yTw - 38).toFixed(1)}" text-anchor="end">${outMean === null ? '—' : F(outMean, 0) + ' cfs'}</text>
+        <text class="dsub" x="${W - 22}" y="${(yTw - 20).toFixed(1)}" text-anchor="end">24-hour average${
+          outNow === null ? '' : ' · ' + F(outNow, 0) + ' cfs right now'}</text>
+        ${tw === null ? '' : `<text class="dsub" x="${W - 22}" y="${(yTw + 22).toFixed(1)}" text-anchor="end">tailwater ${F(tw, 2)} ft${
+          head === null ? '' : ' · ' + F(head, 1) + ' ft of head'}</text>`}
+      </g>
+
+      ${gen === null ? '' : `<g class="dstatus ${gen ? 'on' : 'off'}" transform="translate(${xR + 40} ${(DAM.top + 6)})">
+        <rect x="0" y="0" width="246" height="32" rx="16"/>
+        <circle cx="21" cy="16" r="6.5"/>
+        <text x="39" y="21">${gen ? 'GENERATING NOW' : 'OFF-PEAK — LOW RELEASE'}</text>
+      </g>`}
+
+      <text class="dfoot" x="${W - 22}" y="${H - 14}" text-anchor="end">Water levels and flows live from USGS · structure schematic · elevations to scale</text>
+    </svg>`;
+
+    $('#damNote').innerHTML = `The pool sits <b>${diff >= 0 ? '+' : ''}${F(diff, 2)} ft</b> against an approximate guide
+      curve of ${F(target, 1)} ft and has ${d24 === null ? 'not moved measurably' :
+        Math.abs(d24) < 0.02 ? 'held steady' : (d24 > 0 ? 'risen <b>' + F(d24, 2) + ' ft</b>' : 'fallen <b>' + F(Math.abs(d24), 2) + ' ft</b>')}
+      over 24 hours. ${net === null ? '' : `Averaged across that day the lake took in <b>${F(inMean, 0)} cfs</b> and let go
+      <b>${F(outMean, 0)} cfs</b> — a net of <b class="${net >= 0 ? 'up' : 'down'}">${net >= 0 ? '+' : ''}${F(net, 0)} cfs</b>,
+      so it is ${net >= 0 ? 'filling' : 'drawing down'}.`}
+      ${outRange ? ` Release swung between <b>${F(outRange.min, 0)}</b> and <b>${F(outRange.max, 0)} cfs</b> today, which is what
+      hydropower peaking looks like — the jet above runs at the current rate, not the average.` : ''}
+      Pool and tailwater are gauged on the same datum, so the drop across the structure is the real head.`;
+
+    $('#damKpis').innerHTML = [
+      { lbl: 'Pool elevation', big: F(pool, 2) + ' ft', note: (diff >= 0 ? '+' : '') + F(diff, 2) + ' ft vs guide curve',
+        cls: Math.abs(diff) <= 0.5 ? 'good' : (diff < -3 ? 'bad' : 'warn') },
+      { lbl: 'Conservation pool used', big: F(pctFull, 0) + '%', note: `of the ${WP.min}–${WP.floodTop} ft range`, cls: '' },
+      { lbl: 'Head across the dam', big: head === null ? '—' : F(head, 1) + ' ft', note: 'pool minus tailwater', cls: '' },
+      { lbl: 'Storage', big: stor ? F(stor.latest, 0) + ' kaf' : '—', note: 'thousand acre-feet', cls: '' },
+      { lbl: 'Net balance', big: net === null ? '—' : (net >= 0 ? '+' : '') + F(net, 0),
+        note: 'cfs, 24-hour average in minus out', cls: net === null ? '' : (net >= 0 ? 'good' : 'warn') }
+    ].map(k => `<div class="kpi ${k.cls}"><div class="lbl">${esc(k.lbl)}</div>
+       <div class="big">${esc(k.big)}</div><div class="note">${esc(k.note)}</div></div>`).join('');
+
+    if (window.Charts && inRec && outRec) {
+      const cut = Date.now() - 3 * 86400000;
+      const clip = r => r.points.filter(p => +p.t >= cut);
+      Charts.lineChart($('#damChart'), [
+        { name: 'Inflow at Franklin', color: '#4ade80', points: clip(inRec) },
+        { name: 'Release below the dam', color: '#38bdf8', points: clip(outRec), fill: true }
+      ], { yDp: 0, unit: 'cfs', height: 300 });
+    }
+  }
+
+  /* =====================================================================
      PANEL 2 — RIVER PROFILE
      ===================================================================== */
   /* =====================================================================
@@ -1820,7 +2088,7 @@
   function loadAll() {
     $('#updated').textContent = 'Refreshing…';
     const water = loadWater().then(() => {
-      renderLake(); renderRiver(); renderQuality(); renderBasinRain(); drawRiver();
+      renderLake(); renderDam(); renderRiver(); renderQuality(); renderBasinRain(); drawRiver();
     }).catch(e => {
       console.error(e);
       ['#lakeHero', '#riverProfile', '#qualityVerdict'].forEach(s =>
