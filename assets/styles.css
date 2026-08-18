@@ -392,3 +392,7 @@ table.crk td.spk{padding:4px 10px;width:1%}
 .glab em { font-style:normal; font-size:10px }
 .glab em.up { color:var(--good) } .glab em.down { color:var(--warn) } .glab em.flat { color:var(--dim2) }
 .gpin.sel .glab { border-color:#7dd3fc; box-shadow:0 0 0 2px rgba(125,211,252,.35) }
+
+/* view toggle inside a metric bar — pushed to the trailing edge */
+.barspace { flex:1 1 auto }
+.viewbar { display:inline-flex; gap:6px }

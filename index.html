@@ -66,14 +66,19 @@
   <section class="panel" id="panel-river">
     <div class="card hero">
       <h3>Water moving down the river, gauge by gauge</h3>
-      <p class="cap">Every active USGS gauge from Buford Dam to West Point, on the same map as the Water Quality
-        tab. Pick a metric — each pin shows its live reading and whether it has risen or fallen over 24 hours.
-        Click a pin for everything that gauge reports.</p>
+      <p class="cap">Every active USGS gauge from Buford Dam to West Point, drawn on the real river. Pick a metric —
+        each station shows its live reading and whether it has risen or fallen over 24 hours. Click one for
+        everything that gauge reports, or switch to the road map when you want roads, creeks and real zoom.</p>
       <div class="metricbar" id="metricBar">
         <button class="mbtn active" data-metric="flow">Streamflow</button>
         <button class="mbtn" data-metric="level">Stage / pool</button>
         <button class="mbtn" data-metric="temp">Water temp</button>
         <button class="mbtn" data-metric="quality">Water quality</button>
+        <span class="barspace"></span>
+        <span class="viewbar" id="riverViewBar">
+          <button class="mbtn active" data-view="svg" type="button">Illustrated</button>
+          <button class="mbtn" data-view="map" type="button">Road map</button>
+        </span>
       </div>
       <div class="maplayout">
         <div class="mapbox" id="riverMap"><div class="skel h">Loading map…</div></div>
@@ -103,12 +108,17 @@
     <div class="card alert" id="qualityVerdict"><div class="skel">Assessing water quality…</div></div>
     <div class="card hero">
       <h3>The river, sampled — where the bacteria actually are</h3>
-      <p class="cap">Every Chattahoochee Riverkeeper sampling site plotted in place and colored by its most recent
-        lab-cultured E. coli result. Click any marker or list entry for that site's history. Everything further
-        down this page is context for what you see here.</p>
+      <p class="cap">Every Chattahoochee Riverkeeper sampling site plotted on the same river drawing as the
+        River water flow tab, colored by its most recent lab-cultured E. coli result. Click any site or list
+        entry for its history. Everything further down this page is context for what you see here.</p>
       <div class="metricbar" id="reachBar">
         <button class="mbtn active" data-scope="reach" type="button">West Point Lake &amp; Franklin</button>
         <button class="mbtn" data-scope="corridor" type="button">Whole corridor</button>
+        <span class="barspace"></span>
+        <span class="viewbar">
+          <button class="mbtn active" data-view="svg" type="button">Illustrated</button>
+          <button class="mbtn" data-view="map" type="button">Road map</button>
+        </span>
       </div>
       <div class="reachlayout">
         <div class="mapbox" id="reachMap"><div class="skel h">Loading map…</div></div>

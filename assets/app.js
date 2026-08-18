@@ -606,7 +606,9 @@
       L.innerHTML = sw('#38bdf8', 'Gauge reading') + '<span>Reservoirs show pool elevation; rivers show stage</span>';
     }
     L.innerHTML += '<span><b style="color:#4ade80">▲</b> rising / <b style="color:#fbbf24">▼</b> falling over 24 hours</span>';
-    L.innerHTML += '<span class="dim">Drag to pan · ctrl+wheel or the buttons to zoom · basemaps © OpenStreetMap, CARTO, Esri</span>';
+    L.innerHTML += RIVER_VIEW === 'map'
+      ? '<span class="dim">Drag to pan · ctrl+wheel or the buttons to zoom · basemaps © OpenStreetMap, CARTO, Esri</span>'
+      : '<span class="dim">River geometry © OpenStreetMap contributors</span>';
   }
 
   function showStation(id, hover) {
@@ -762,6 +764,20 @@
 
   function resizeCorridorMap() {
     if (CMAP) setTimeout(() => CMAP.invalidateSize(), 60);
+  }
+
+  /* Two ways to look at the same river. The illustrated view is the default —
+     it reads cleanly at a glance — and the slippy map is there when you want
+     roads, tributaries and real zoom. */
+  let RIVER_VIEW = 'svg';
+
+  function drawRiver() {
+    const box = $('#riverMap');
+    if (!box) return;
+    if (RIVER_VIEW === 'map' && window.L) { renderCorridorMap(); return; }
+    if (CMAP) { CMAP.remove(); CMAP = null; CLAYER = null; CMARK = {}; }
+    box.classList.remove('slippy');
+    renderMap();
   }
 
   function renderRiver() {
@@ -1466,6 +1482,28 @@
     if (RMAP) setTimeout(() => RMAP.invalidateSize(), 60);
   }
 
+  let REACH_VIEW = 'svg';
+
+  function drawReach() {
+    const box = $('#reachMap');
+    if (!box || !$('#reachList')) return;
+    // The illustrated reach is drawn for Franklin-to-the-dam only, so the
+    // whole-corridor scope always uses the slippy map.
+    if (REACH_SCOPE !== 'reach') REACH_VIEW = 'map';
+    syncReachButtons();
+    if (REACH_VIEW === 'map' && window.L) { renderReachMap(); return; }
+    if (RMAP) { RMAP.remove(); RMAP = null; RLAYER = null; RGAUGES = null; RMARK = {}; }
+    box.classList.remove('slippy');
+    renderReachSVG();
+  }
+
+  function syncReachButtons() {
+    $$('#reachBar .mbtn[data-view]').forEach(b =>
+      b.classList.toggle('active', b.dataset.view === REACH_VIEW));
+    $$('#reachBar .mbtn[data-scope]').forEach(b =>
+      b.classList.toggle('active', b.dataset.scope === REACH_SCOPE));
+  }
+
   /* =====================================================================
      PANEL 4 — WEATHER
      ===================================================================== */
@@ -1782,7 +1820,7 @@
   function loadAll() {
     $('#updated').textContent = 'Refreshing…';
     const water = loadWater().then(() => {
-      renderLake(); renderRiver(); renderQuality(); renderBasinRain(); renderCorridorMap();
+      renderLake(); renderRiver(); renderQuality(); renderBasinRain(); drawRiver();
     }).catch(e => {
       console.error(e);
       ['#lakeHero', '#riverProfile', '#qualityVerdict'].forEach(s =>
@@ -1791,7 +1829,7 @@
 
     // Geometry is only needed by the hand-drawn fallback maps now, but the
     // reach map still waits on it so the fallback path stays whole.
-    const geo = loadGeo().then(() => { renderCorridorMap(); renderReachMap(); })
+    const geo = loadGeo().then(() => { drawRiver(); drawReach(); })
       .catch(e => { console.error(e); err('#riverMap', 'Map geometry could not be loaded.'); });
 
     const weather = loadWeather().then(renderWeather)
@@ -1801,28 +1839,42 @@
       .catch(e => { console.error(e); err('#rainVerdict', 'Rainfall climatology could not be loaded.'); });
 
     const crk = (DATA.crk ? Promise.resolve() : loadCRK())
-      .then(() => { renderCRK(); renderReachMap(); })
+      .then(() => { renderCRK(); drawReach(); })
       .catch(e => { console.error(e); err('#crkBody', 'Riverkeeper sample data could not be loaded.'); });
 
     return Promise.all([water, weather, rain, geo, crk]).then(() => setUpdated(true));
   }
 
   // metric selector for the river map
-  $$('#metricBar .mbtn').forEach(b => b.addEventListener('click', () => {
-    $$('#metricBar .mbtn').forEach(o => o.classList.remove('active'));
+  $$('#metricBar .mbtn[data-metric]').forEach(b => b.addEventListener('click', () => {
+    $$('#metricBar .mbtn[data-metric]').forEach(o => o.classList.remove('active'));
     b.classList.add('active');
     MAP_METRIC = b.dataset.metric;
-    renderCorridorMap();
+    drawRiver();
   }));
 
-  $$('#reachBar .mbtn').forEach(b => b.addEventListener('click', () => {
-    if (REACH_SCOPE === b.dataset.scope) return;
-    $$('#reachBar .mbtn').forEach(o => o.classList.remove('active'));
+  $$('#riverViewBar .mbtn').forEach(b => b.addEventListener('click', () => {
+    if (RIVER_VIEW === b.dataset.view) return;
+    $$('#riverViewBar .mbtn').forEach(o => o.classList.remove('active'));
     b.classList.add('active');
+    RIVER_VIEW = b.dataset.view;
+    drawRiver();
+  }));
+
+  $$('#reachBar .mbtn[data-scope]').forEach(b => b.addEventListener('click', () => {
+    if (REACH_SCOPE === b.dataset.scope) return;
     REACH_SCOPE = b.dataset.scope;
     REACH_SEL = null;
     if (RMAP) RMAP._fitted = false;              // re-frame for the new extent
-    renderReachMap();
+    drawReach();
+  }));
+
+  $$('#reachBar .mbtn[data-view]').forEach(b => b.addEventListener('click', () => {
+    if (REACH_VIEW === b.dataset.view) return;
+    REACH_VIEW = b.dataset.view;
+    // The illustrated reach only covers Franklin to the dam.
+    if (REACH_VIEW === 'svg') { REACH_SCOPE = 'reach'; if (RMAP) RMAP._fitted = false; }
+    drawReach();
   }));
 
   $$('#crkBar .mbtn').forEach(b => b.addEventListener('click', () => {
