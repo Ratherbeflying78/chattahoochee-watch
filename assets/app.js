@@ -669,7 +669,9 @@
     if (q === null || head === null || head <= 0) return null;
     const turb = Math.min(q, PH.units * PH.unitCfs);
     if (turb <= PH.minFlow) return 0;
-    return 0.0846 * turb * head * PH.eff / 1000;
+    // A generator cannot deliver much past its rating no matter how much water
+    // you push at it, so cap the estimate at the nameplate.
+    return Math.min(PH.ratedMW, 0.0846 * turb * head * PH.eff / 1000);
   }
   function phUnits(q) {
     if (q === null) return null;
@@ -732,6 +734,9 @@
 
     const rack = Array.from({ length: 7 }, (_, i) =>
       `<line class="phrack" x1="${xIn - 104 + i * 8}" y1="${yPen - 54}" x2="${xIn - 104 + i * 8}" y2="${yPen + 54}"/>`).join('');
+
+    // Transmission line out of the transformer; the sparks ride the same path.
+    const wire = `M${xOut + 92} ${yGen - 24} C ${xOut + 150} ${yGen - 60}, ${W - 150} 118, ${W - 40} 96`;
 
     stage.innerHTML = `
     <svg class="phsvg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img"
@@ -846,8 +851,9 @@
         <line class="phbus" x1="${xAx + 104}" y1="${yGen}" x2="${xOut + 26}" y2="${yGen}"/>
         <rect class="phxfmr" x="${xOut + 26}" y="${yGen - 40}" width="66" height="80" rx="6"/>
         <text class="phpart" x="${xOut + 26}" y="${yGen + 58}">TRANSFORMER</text>
-        <path class="phline" d="M${xOut + 92} ${yGen - 24} C ${xOut + 150} ${yGen - 60}, ${W - 150} ${118}, ${W - 40} ${96}"/>
-        ${[0, 1, 2].map(i => `<circle class="phspark" r="3.5" style="--d:${(i * 0.5).toFixed(2)}s"/>`).join('')}
+        <path class="phline" d="${wire}"/>
+        ${[0, 1, 2].map(i => `<circle class="phspark" r="3.5"
+          style="offset-path:path('${wire}');--d:${(i * 0.5).toFixed(2)}s"/>`).join('')}
         <text class="phpart" x="${W - 40}" y="${84}" text-anchor="end">TO THE GRID</text>
       </g>
 

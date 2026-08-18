@@ -536,9 +536,9 @@ table.crk td.spk{padding:4px 10px;width:1%}
 .phring { fill:none; stroke:#cfe4ff; stroke-width:1.5; opacity:.5 }
 .phblade { fill:#bcd3ee; stroke:#e8f3ff; stroke-width:.8 }
 .phhub { fill:#e8f3ff }
-.phrunner.spin { animation:ph-spin var(--spin) linear infinite; transform-origin:0 0 }
+.phrunner.spin { animation:ph-spin var(--spin) linear infinite; transform-box:fill-box; transform-origin:center }
 .phrotor { fill:#3a4d68; stroke:#9fb0c9; stroke-width:2 }
-.phrotor.spin { animation:ph-spin var(--spin) linear infinite; transform-origin:0 0 }
+.phrotor.spin { animation:ph-spin var(--spin) linear infinite; transform-box:fill-box; transform-origin:center }
 .phrotor.cap { fill:#e8f3ff; stroke:none }
 @keyframes ph-spin { to { transform:rotate(360deg) } }
 .phshaft { fill:#6d7f9a; stroke:#a9bad2; stroke-width:1 }
@@ -554,7 +554,7 @@ table.crk td.spk{padding:4px 10px;width:1%}
 .phgrid.live .phbus, .phgrid.live .phline { stroke:#fbbf24 }
 .phgrid.live .phxfmr { stroke:#fbbf24 }
 .phspark { fill:#fff3c4; opacity:0 }
-.phgrid.live .phspark { offset-path:path('M792 172 C 850 136, 970 118, 1080 96'); animation:ph-run 1.5s linear infinite; animation-delay:var(--d) }
+.phgrid.live .phspark { animation:ph-run 1.5s linear infinite; animation-delay:var(--d) }
 
 .phchip { fill:#0d1c30; stroke:#2b4468; stroke-width:1 }
 .phchip.on { stroke:#fbbf24 }
