@@ -11,7 +11,7 @@ in a single view — no account, no API key, no backend server.
 | Tab | Contents |
 |---|---|
 | **Lake Now** | West Point Lake pool elevation against the seasonal guide curve, 24-hour and 7-day change, storage, the inflow/outflow water budget, and upstream Lake Lanier storage. |
-| **The Dam** | A live cross-section of West Point Dam drawn to true elevations. Pool and tailwater are gauged on the same datum, so the ~70 ft of head across the structure is real; the lake sits against the flood pool, summer full, seasonal guide curve and minimum lines; and the jet leaving the powerhouse animates at the release the dam is actually making, with a generating / off-peak badge inferred from the day's own range. Below it: pool, head, storage and net balance, plus inflow versus release at full instantaneous resolution so the hydropower pulses are visible. |
+| **The Dam** | A live cross-section of West Point Dam drawn to true elevations. Pool and tailwater are gauged on the same datum, so the ~70 ft of head across the structure is real; the lake sits against the flood pool, summer full, seasonal guide curve and minimum lines; and the jet leaving the powerhouse animates at the release the dam is actually making, with a generating / off-peak badge inferred from the day's own range. Below it: pool, head, storage and net balance; a cutaway of one generating unit that follows the water from the trash rack through the penstock, scroll case, Francis runner and draft tube to the tailrace, with units running, net head, estimated megawatts and estimated energy over the last 24 hours; inflow versus release at full instantaneous resolution, labelled by date and hour with a marker at each midnight so the hydropower pulses can be read against the clock; and a bar strip of average release by hour of day over the last two weeks that names the plant's typical generating window. |
 | **River water flow** | A pan-and-zoom Leaflet map of the corridor — the same map component as Water Quality, with switchable street, dark and satellite basemaps — with every active gauge plotted in place. Each pin is labelled with its live reading and a ▲/▼ 24-hour trend arrow, so you can read the whole river without clicking anything. Switch between streamflow, stage/pool, water temperature and water quality; markers recolor and resize, and clicking one opens every reading that gauge reports. Below it, the same gauges as a downstream-ordered table plus a 7-day daily-average streamflow bar chart. |
 | **Water Quality** | Built around a pan-and-zoom map of every Chattahoochee Riverkeeper sampling site, coloured by its latest lab-cultured E. coli result — switchable between the West Point Lake reach and the whole corridor, with clustered markers that carry the worst result they contain. Below it: live USGS BacteriALERT estimates at Atlanta and Norcross against the 235 cfu/100 mL contact-recreation threshold, the same Riverkeeper samples as tables, plus turbidity, dissolved oxygen and pH. |
 | **Weather** | Current conditions, the NWS 7-day forecast for LaGrange, a 10-day rain outlook, 7-day basin rainfall totals, and on-the-water station readings. |
@@ -88,6 +88,15 @@ Map tiles come from CARTO and Esri and are fetched by the visitor's browser.
 | 02339500 | Chattahoochee River at West Point |
 
 ## Caveats
+
+- Powerhouse output on the Dam tab is **estimated, not metered**. Neither USACE nor SEPA
+  publishes live megawatts for West Point, so the figure is calculated from gauged release and
+  gauged head (`kW ≈ 0.0846 × cfs × ft × 0.88`), capped at the plant's two-unit hydraulic
+  capacity, and units-running is inferred from flow rather than reported. Nameplate is 73.4 MW
+  across two Francis units. Expect it to be in the right neighbourhood, not exact.
+- The generating window on the hour-of-day chart is an **observed tendency** averaged from the
+  gauge over two weeks, in local Eastern time — never a published schedule. Generation changes
+  daily with demand, rainfall and downstream needs.
 
 - USGS instantaneous values are **provisional** and subject to revision. Sensors drift, foul
   and fail; trust trends over any single reading.

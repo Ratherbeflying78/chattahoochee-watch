@@ -495,3 +495,82 @@ table.crk td.spk{padding:4px 10px;width:1%}
 .damclock .dcax { fill:#8fa6c4; font-size:11px }
 .chart .daymark { stroke:#33456a; stroke-width:1; stroke-dasharray:4 4 }
 .chart .daylbl { fill:#7f97b5; font-size:10px; font-weight:700; letter-spacing:.08em }
+/* ===================== INSIDE THE POWERHOUSE ===================== */
+.phcard { padding-bottom:14px }
+.phsvg { display:block; width:100%; height:auto; border-radius:12px; background:#060f1d }
+.phsvg text { font-family:inherit }
+.phtitle { fill:#cfe4ff; font-size:14px; font-weight:800; letter-spacing:.14em }
+.phlbl { fill:#7fa8cf; font-size:12px; font-weight:700; letter-spacing:.14em }
+.phpart { fill:#a8bcd6; font-size:11px; font-weight:700; letter-spacing:.1em }
+.phgenlbl { fill:#dce9ff; font-size:13px; font-weight:800; letter-spacing:.16em }
+.phfoot { fill:#5f7794; font-size:11px }
+.phsub { fill:#9fb6d2; font-size:11px; font-weight:600; letter-spacing:.06em }
+
+.phdeck { fill:#8d9db6; stroke:#b6c6dd; stroke-width:1 }
+.phhall { fill:none; stroke:#8d9db6; stroke-width:2 }
+.phroof { fill:#7b8ba6; stroke:#adbdd4; stroke-width:1 }
+.phfloor { stroke:#8d9db6; stroke-width:2 }
+.phrack { stroke:#93a3bd; stroke-width:2.5; opacity:.75 }
+.phgate { fill:#c3d2e8; stroke:#e5eeff; stroke-width:1 }
+
+.phdim line { stroke:#7fa8cf; stroke-width:1.4 }
+.phdim path { fill:none; stroke:#7fa8cf; stroke-width:1.6 }
+.phdim .phdash { stroke:#3d5a7d; stroke-width:1; stroke-dasharray:5 6 }
+.phhead { fill:#e6f4ff; font-size:20px; font-weight:800 }
+
+.phwall { fill:none; stroke:#8d9db6; stroke-width:calc(var(--bore) + 12px); stroke-linecap:round; stroke-linejoin:round }
+.phwater { fill:none; stroke:url(#phflow); stroke-width:var(--bore); stroke-linecap:round; stroke-linejoin:round }
+.phdrop { fill:#eafaff; opacity:0; offset-rotate:0deg;
+  animation:ph-run var(--dur) linear infinite; animation-delay:var(--d) }
+@keyframes ph-run {
+  0% { offset-distance:0%; opacity:0 }
+  8% { opacity:.95 }
+  88% { opacity:.85 }
+  100% { offset-distance:100%; opacity:0 }
+}
+.phfoam { fill:#dff6ff; opacity:.5; animation:ph-foam 2.4s ease-in-out infinite; animation-delay:var(--d) }
+@keyframes ph-foam { 0%,100% { opacity:.18; r:4 } 50% { opacity:.6 } }
+
+.phscroll { fill:#46566f; stroke:#9fb0c9; stroke-width:2 }
+.phscroll.in { fill:#12314c; stroke:#7f93ad }
+.phring { fill:none; stroke:#cfe4ff; stroke-width:1.5; opacity:.5 }
+.phblade { fill:#bcd3ee; stroke:#e8f3ff; stroke-width:.8 }
+.phhub { fill:#e8f3ff }
+.phrunner.spin { animation:ph-spin var(--spin) linear infinite; transform-origin:0 0 }
+.phrotor { fill:#3a4d68; stroke:#9fb0c9; stroke-width:2 }
+.phrotor.spin { animation:ph-spin var(--spin) linear infinite; transform-origin:0 0 }
+.phrotor.cap { fill:#e8f3ff; stroke:none }
+@keyframes ph-spin { to { transform:rotate(360deg) } }
+.phshaft { fill:#6d7f9a; stroke:#a9bad2; stroke-width:1 }
+.phshaft.live { fill:#8fa3c0 }
+.phstator { fill:#243851; stroke:#8d9db6; stroke-width:2 }
+.phstator.live { stroke:#fbbf24; filter:url(#phglow) }
+.phpole { stroke:#7f93ad; stroke-width:5; stroke-linecap:round }
+.phpole.live { stroke:#fbbf24 }
+
+.phbus { stroke:#5c6b85; stroke-width:5; stroke-linecap:round }
+.phxfmr { fill:#2a3b53; stroke:#8d9db6; stroke-width:1.5 }
+.phline { fill:none; stroke:#5c6b85; stroke-width:2 }
+.phgrid.live .phbus, .phgrid.live .phline { stroke:#fbbf24 }
+.phgrid.live .phxfmr { stroke:#fbbf24 }
+.phspark { fill:#fff3c4; opacity:0 }
+.phgrid.live .phspark { offset-path:path('M792 172 C 850 136, 970 118, 1080 96'); animation:ph-run 1.5s linear infinite; animation-delay:var(--d) }
+
+.phchip { fill:#0d1c30; stroke:#2b4468; stroke-width:1 }
+.phchip.on { stroke:#fbbf24 }
+.phbig { fill:#e6f4ff; font-size:26px; font-weight:800 }
+.phbig.on { fill:#fbbf24 }
+.phunit { font-size:14px; font-weight:700; fill:#9fb6d2 }
+.phstate rect { fill:#0d1c30; stroke:#2b4468; stroke-width:1 }
+.phstate text { fill:#9fb6d2; font-size:12px; font-weight:800; letter-spacing:.12em }
+.phstate circle { fill:#5c6b85 }
+.phstate.on rect { stroke:#fbbf24 }
+.phstate.on text { fill:#fde68a }
+.phstate.on circle { fill:#fbbf24; animation:ph-pulse 1.6s ease-in-out infinite }
+@keyframes ph-pulse { 0%,100% { opacity:1 } 50% { opacity:.35 } }
+
+@media (prefers-reduced-motion:reduce) {
+  .phdrop, .phfoam, .phspark, .phrunner.spin, .phrotor.spin, .phstate.on circle { animation:none }
+  .phdrop { opacity:.9 }
+}.phcrane line { stroke:#8d9db6; stroke-width:2 }
+.phcrane rect { fill:#6d7f9a; stroke:#a9bad2; stroke-width:1 }

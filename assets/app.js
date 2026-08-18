@@ -574,6 +574,7 @@
       ], { yDp: 0, unit: 'cfs', height: 300, xMode: 'datetime', xTicks: 8, dayLines: true, minZero: true });
     }
     renderDamClock(outRec);
+    renderPowerhouse(outRec, outNow, outMean, head, gen);
   }
 
   /* Average release by hour of local time over the last two weeks. This is the
@@ -648,6 +649,257 @@
            flow more steadily, which usually means high inflow rather than peaking.`}
         This is an average of the actual gauge, not a published schedule: the Corps changes generation daily with
         demand, rainfall and downstream needs, so treat it as a tendency, never as a guarantee before you get in the water.</p>`;
+  }
+
+  /* =====================================================================
+     PANEL 1c — INSIDE THE POWERHOUSE
+     A cutaway of one generating unit. West Point has two Francis units,
+     73.4 MW combined. The Corps does not publish live megawatts, so output
+     is estimated from the one thing that is gauged: flow and head.
+     ===================================================================== */
+  const PH = {
+    W: 1120, H: 600,
+    units: 2, ratedMW: 73.4, unitCfs: 7300, eff: 0.88, minFlow: 1200,
+    fore: 118, tail: 336,                     // water surfaces in the drawing
+    xIn: 252, yPen: 340, xAx: 566, yRun: 440, xOut: 792
+  };
+
+  // kW from a column of water: 1 cfs falling 1 ft is 0.0846 kW before losses.
+  function phMW(q, head) {
+    if (q === null || head === null || head <= 0) return null;
+    const turb = Math.min(q, PH.units * PH.unitCfs);
+    if (turb <= PH.minFlow) return 0;
+    return 0.0846 * turb * head * PH.eff / 1000;
+  }
+  function phUnits(q) {
+    if (q === null) return null;
+    if (q <= PH.minFlow) return 0;
+    return q < PH.unitCfs * 1.35 ? 1 : PH.units;
+  }
+  // Trapezoidal integration of estimated output over the last 24 hours.
+  function phEnergy(rec, head) {
+    if (!rec || !rec.points || head === null) return null;
+    const cut = Date.now() - 86400000;
+    const pts = rec.points.filter(p => +p.t >= cut && isFinite(p.v));
+    if (pts.length < 8) return null;
+    let mwh = 0;
+    for (let i = 1; i < pts.length; i++) {
+      const hrs = (+pts[i].t - +pts[i - 1].t) / 3600000;
+      if (hrs <= 0 || hrs > 3) continue;
+      mwh += ((phMW(pts[i].v, head) + phMW(pts[i - 1].v, head)) / 2) * hrs;
+    }
+    return mwh;
+  }
+
+  function renderPowerhouse(outRec, outNow, outMean, head, gen) {
+    const stage = $('#phStage');
+    if (!stage) return;
+    const q = outNow === null ? outMean : outNow;
+    if (q === null) { stage.innerHTML = '<div class="err">The release gauge below the dam is not reporting.</div>'; return; }
+
+    const units = phUnits(q), mw = phMW(q, head), running = units > 0;
+    const load = mw === null ? 0 : Math.max(0, Math.min(1, mw / PH.ratedMW));
+    const perUnit = units > 0 ? Math.min(q, PH.units * PH.unitCfs) / units : 0;
+    const mwh = phEnergy(outRec, head);
+    const homes = mwh === null ? null : (mwh * 1000) / 28.8;   // a US home averages ~28.8 kWh a day
+
+    // Everything that moves is keyed to how hard the plant is working.
+    const drive = Math.max(0.06, Math.min(1, q / (PH.units * PH.unitCfs)));
+    const dur = (5.2 - drive * 4.3).toFixed(2);       // particle transit time
+    const spin = (2.6 - drive * 2.25).toFixed(2);     // one runner revolution
+    const bore = 16 + drive * 26;                     // visible water column in the penstock
+
+    const W = PH.W, H = PH.H, xIn = PH.xIn, yPen = PH.yPen, xAx = PH.xAx, yRun = PH.yRun, xOut = PH.xOut;
+    const fore = PH.fore, tail = PH.tail;
+    const yGen = 214, floor = 300, roof = 150, topCon = fore - 30;
+
+    // The route the water takes, reused for the animated particles. The conduit
+    // itself only exists inside the concrete; the particles start out in the lake.
+    const legs = `L${xAx - 130} ${yPen}
+      C ${xAx - 40} ${yPen}, ${xAx} ${yPen + 40}, ${xAx} ${yRun - 46}
+      L ${xAx} ${yRun + 52}
+      C ${xAx} ${yRun + 96}, ${xAx + 120} ${yRun + 84}, ${xOut} ${yRun - 12}
+      L ${W - 60} ${yRun - 34}`;
+    const route = `M${xIn - 60} ${yPen} ${legs}`;
+    const flow = `M60 ${yPen} ${legs}`;
+
+    const parts = Array.from({ length: 16 }, (_, i) =>
+      `<circle class="phdrop" r="${(2.4 + (i % 4) * 0.8).toFixed(1)}"
+        style="offset-path:path('${flow.replace(/\s+/g, ' ')}');--d:${(i * (dur / 16)).toFixed(2)}s;--dur:${dur}s"/>`).join('');
+
+    const blades = [0, 40, 80, 120, 160, 200, 240, 280, 320].map(a =>
+      `<path class="phblade" transform="rotate(${a})" d="M0 -8 C 9 -20, 22 -22, 30 -12 C 22 -6, 14 2, 9 8 Z"/>`).join('');
+
+    const rack = Array.from({ length: 7 }, (_, i) =>
+      `<line class="phrack" x1="${xIn - 104 + i * 8}" y1="${yPen - 54}" x2="${xIn - 104 + i * 8}" y2="${yPen + 54}"/>`).join('');
+
+    stage.innerHTML = `
+    <svg class="phsvg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img"
+         aria-label="Cutaway of a West Point Dam generating unit passing ${F(q, 0)} cubic feet per second under ${head === null ? 'unknown' : F(head, 1) + ' feet of'} head">
+      <defs>
+        <linearGradient id="phsky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#0c2039"/><stop offset="1" stop-color="#060f1d"/></linearGradient>
+        <linearGradient id="phlake" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#3fb0ef" stop-opacity=".9"/>
+          <stop offset="1" stop-color="#0a2f52" stop-opacity=".9"/></linearGradient>
+        <linearGradient id="phtail" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#5fd2ea" stop-opacity=".88"/>
+          <stop offset="1" stop-color="#0b3a4e" stop-opacity=".88"/></linearGradient>
+        <linearGradient id="phcon" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#5c6b85"/><stop offset=".5" stop-color="#77869f"/>
+          <stop offset="1" stop-color="#414e66"/></linearGradient>
+        <linearGradient id="phflow" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#9fe6ff" stop-opacity=".95"/>
+          <stop offset="1" stop-color="#1c7fb8" stop-opacity=".95"/></linearGradient>
+        <filter id="phglow" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <clipPath id="phClipT"><rect x="${xOut - 10}" y="0" width="${W - xOut + 10}" height="${H}"/></clipPath>
+      </defs>
+
+      <rect x="0" y="0" width="${W}" height="${H}" fill="url(#phsky)"/>
+      <text class="phtitle" x="34" y="34">INSIDE ONE UNIT — WEST POINT POWERHOUSE</text>
+
+      <!-- forebay -->
+      <rect x="0" y="${fore}" width="${xIn - 60}" height="${H - fore}" fill="url(#phlake)"/>
+      <text class="phlbl" x="34" y="${fore - 14}">FOREBAY · LAKE SIDE</text>
+
+      <!-- tailrace -->
+      <g clip-path="url(#phClipT)">
+        <rect x="${xOut - 10}" y="${tail}" width="${W - xOut + 10}" height="${H - tail}" fill="url(#phtail)"/>
+        ${[0, 1, 2, 3].map(i => `<circle class="phfoam" cx="${xOut + 40 + i * 46}" cy="${tail + 8}"
+          r="${5 + i * 2}" style="--d:${(i * 0.38).toFixed(2)}s"/>`).join('')}
+      </g>
+      <text class="phlbl" x="${W - 130}" y="${tail - 14}" text-anchor="end">TAILRACE · RIVER SIDE</text>
+
+      <!-- gross head dimension between the two surfaces -->
+      <g class="phdim">
+        <line class="phdash" x1="${xOut + 50}" y1="${fore}" x2="${W - 30}" y2="${fore}"/>
+        <line class="phdash" x1="${xOut + 50}" y1="${tail}" x2="${W - 30}" y2="${tail}"/>
+        <line x1="${W - 44}" y1="${fore}" x2="${W - 44}" y2="${tail}"/>
+        <path d="M${W - 49} ${fore + 9} l5 -9 l5 9"/><path d="M${W - 49} ${tail - 9} l5 9 l5 -9"/>
+        <text class="phhead" x="${W - 54}" y="${((fore + tail) / 2 - 6)}" text-anchor="end">${head === null ? '—' : F(head, 1) + ' ft'}</text>
+        <text class="phsub" x="${W - 54}" y="${((fore + tail) / 2 + 10)}" text-anchor="end">gross head</text>
+      </g>
+
+      <!-- concrete: intake block, machine hall substructure, draft tube surround -->
+      <path fill="url(#phcon)" stroke="#93a3bd" stroke-width="1.2" d="M${xIn - 60} ${topCon}
+        L${xIn - 60} ${H} L${xOut + 44} ${H} L${xOut + 44} ${yRun - 60}
+        L${xOut - 4} ${yRun - 60} L${xOut - 4} ${floor} L${xIn + 96} ${floor}
+        L${xIn + 96} ${topCon} Z"/>
+      <rect class="phdeck" x="${xIn - 66}" y="${topCon - 12}" width="${xIn + 168}" height="13" rx="3"/>
+
+      <!-- machine hall shell -->
+      <path class="phhall" d="M${xIn + 96} ${floor} L${xIn + 96} ${roof} L${xOut - 4} ${roof} L${xOut - 4} ${floor}"/>
+      <rect class="phroof" x="${xIn + 88}" y="${roof - 13}" width="${xOut - xIn - 76}" height="13" rx="3"/>
+      <line class="phfloor" x1="${xIn + 96}" y1="${floor}" x2="${xOut - 4}" y2="${floor}"/>
+      <text class="phpart" x="${xIn + 108}" y="${roof - 21}">MACHINE HALL</text>
+
+      <!-- overhead travelling crane, the thing that lifts a rotor out -->
+      <g class="phcrane">
+        <line x1="${xIn + 100}" y1="${roof + 20}" x2="${xOut - 8}" y2="${roof + 20}"/>
+        <rect x="${xIn + 128}" y="${roof + 14}" width="86" height="12" rx="3"/>
+        <line x1="${xIn + 171}" y1="${roof + 26}" x2="${xIn + 171}" y2="${roof + 54}"/>
+        <rect x="${xIn + 163}" y="${roof + 54}" width="16" height="10" rx="2"/>
+      </g>
+
+      <!-- intake: trash rack and gate -->
+      ${rack}
+      <rect class="phgate" x="${xIn - 14}" y="${yPen - 62}" width="12" height="${bore + 40}" rx="2"/>
+      <text class="phpart" x="${xIn - 112}" y="${yPen + 78}">TRASH RACK</text>
+      <text class="phpart" x="${xIn - 10}" y="${yPen - 72}">INTAKE GATE</text>
+
+      <!-- the water conduit itself: penstock, scroll case throat, draft tube -->
+      <g class="phpipe" style="--bore:${bore.toFixed(1)}px">
+        <path class="phwall" d="${route}"/>
+        <path class="phwater" d="${route}"/>
+      </g>
+      <text class="phpart" x="${xAx - 200}" y="${yPen - 36}">PENSTOCK</text>
+
+      <!-- scroll case and runner -->
+      <g transform="translate(${xAx} ${yRun})">
+        <circle class="phscroll" r="76"/>
+        <circle class="phscroll in" r="52"/>
+        <g class="phrunner ${running ? 'spin' : ''}" style="--spin:${spin}s">${blades}<circle class="phhub" r="9"/></g>
+        <circle class="phring" r="34"/>
+      </g>
+      <text class="phpart" x="${xAx + 88}" y="${yRun + 46}">SCROLL CASE</text>
+      <text class="phpart" x="${xAx - 168}" y="${yRun + 6}">FRANCIS RUNNER</text>
+      <text class="phpart" x="${xAx + 96}" y="${yRun + 132}">DRAFT TUBE</text>
+
+      <!-- shaft up to the generator -->
+      <rect class="phshaft ${running ? 'live' : ''}" x="${xAx - 9}" y="${yGen + 44}" width="18" height="${yRun - yGen - 96}" rx="4"/>
+      <text class="phpart" x="${xAx + 18}" y="${yGen + 116}">SHAFT</text>
+
+      <!-- generator -->
+      <g transform="translate(${xAx} ${yGen})">
+        <rect class="phstator ${running ? 'live' : ''}" x="-104" y="-56" width="208" height="112" rx="12"/>
+        <circle class="phrotor ${running ? 'spin' : ''}" style="--spin:${spin}s" r="40"/>
+        ${[0, 60, 120, 180, 240, 300].map(a => `<line class="phpole ${running ? 'live' : ''}"
+          transform="rotate(${a})" y1="-40" y2="-24"/>`).join('')}
+        <circle class="phrotor cap" r="8"/>
+        <text class="phgenlbl" x="0" y="-68" text-anchor="middle">GENERATOR</text>
+      </g>
+
+      <!-- bus duct, transformer and the line out -->
+      <g class="phgrid ${running ? 'live' : ''}">
+        <line class="phbus" x1="${xAx + 104}" y1="${yGen}" x2="${xOut + 26}" y2="${yGen}"/>
+        <rect class="phxfmr" x="${xOut + 26}" y="${yGen - 40}" width="66" height="80" rx="6"/>
+        <text class="phpart" x="${xOut + 26}" y="${yGen + 58}">TRANSFORMER</text>
+        <path class="phline" d="M${xOut + 92} ${yGen - 24} C ${xOut + 150} ${yGen - 60}, ${W - 150} ${118}, ${W - 40} ${96}"/>
+        ${[0, 1, 2].map(i => `<circle class="phspark" r="3.5" style="--d:${(i * 0.5).toFixed(2)}s"/>`).join('')}
+        <text class="phpart" x="${W - 40}" y="${84}" text-anchor="end">TO THE GRID</text>
+      </g>
+
+      <!-- live readouts, in the header band so nothing sits on the machinery -->
+      <g transform="translate(${W - 292} 8)">
+        <rect class="phchip" x="0" y="0" width="248" height="52" rx="10"/>
+        <text class="phbig" x="14" y="34">${F(q, 0)}<tspan class="phunit"> cfs</tspan></text>
+        <text class="phsub" x="132" y="22">THROUGH THE DAM</text>
+        <text class="phsub" x="132" y="38">${outNow === null ? '24-hour average' : 'right now'}</text>
+      </g>
+
+      <g transform="translate(${W - 578} 4)">
+        <rect class="phchip ${running ? 'on' : 'off'}" x="0" y="0" width="272" height="60" rx="10"/>
+        <text class="phbig ${running ? 'on' : ''}" x="14" y="40">${mw === null ? '—' : F(mw, 1)}<tspan class="phunit"> MW</tspan></text>
+        <text class="phsub" x="140" y="24">ESTIMATED OUTPUT</text>
+        <text class="phsub" x="140" y="40">${mw === null ? 'head unknown' : F(load * 100, 0) + '% of 73.4 MW rated'}</text>
+        <text class="phsub" x="140" y="54">${units === 0 ? 'units idle' : units + (units === 1 ? ' unit running' : ' units running')}</text>
+      </g>
+
+      <g class="phstate ${running ? 'on' : 'off'}" transform="translate(34 44)">
+        <rect x="0" y="0" width="228" height="30" rx="15"/>
+        <circle cx="20" cy="15" r="6"/>
+        <text x="37" y="20">${running ? 'MAKING POWER' : 'MINIMUM RELEASE ONLY'}</text>
+      </g>
+
+      ${parts}
+    </svg>`;
+
+    $('#phNote').innerHTML = `Right now about <b>${F(q, 0)} cfs</b> is moving through the dam
+      ${head === null ? '' : `under <b>${F(head, 1)} ft</b> of head`}, which works out to roughly
+      <b>${mw === null ? '—' : F(mw, 1)} MW</b>${units === 0
+        ? ' — the units are effectively idle and this is the minimum release passing the structure.'
+        : ` from ${units === 1 ? 'one unit' : 'both units'}, about <b>${F(perUnit, 0)} cfs</b> each.`}
+      ${mwh === null ? '' : `Over the last 24 hours the plant has produced an estimated <b>${F(mwh, 0)} MWh</b>${
+        homes === null ? '' : ` — about what <b>${F(homes, 0)}</b> average homes use in a day`}.`}
+      The Corps and SEPA do not publish live megawatts, so output here is calculated from the two things that are
+      gauged: how much water is going through and how far it falls. Treat it as a good estimate, not a meter reading.`;
+
+    $('#phKpis').innerHTML = [
+      { lbl: 'Units running', big: units === null ? '—' : units + ' of ' + PH.units,
+        note: running ? 'inferred from release and head' : 'release is at its daily minimum',
+        cls: running ? 'good' : '' },
+      { lbl: 'Flow per unit', big: units > 0 ? F(perUnit, 0) : '—',
+        note: `cfs · about ${F(PH.unitCfs, 0)} cfs is a full unit`, cls: '' },
+      { lbl: 'Net head', big: head === null ? '—' : F(head, 1) + ' ft', note: 'pool minus tailwater', cls: '' },
+      { lbl: 'Estimated output', big: mw === null ? '—' : F(mw, 1) + ' MW',
+        note: mw === null ? 'head unknown' : F(load * 100, 0) + '% of the 73.4 MW nameplate',
+        cls: mw === null ? '' : (load > 0.6 ? 'good' : (load > 0.05 ? 'warn' : '')) },
+      { lbl: 'Energy, last 24 h', big: mwh === null ? '—' : F(mwh, 0) + ' MWh',
+        note: homes === null ? 'estimated' : '≈ ' + F(homes, 0) + ' homes for a day', cls: '' }
+    ].map(k => `<div class="kpi ${k.cls}"><div class="lbl">${esc(k.lbl)}</div>
+       <div class="big">${esc(k.big)}</div><div class="note">${esc(k.note)}</div></div>`).join('');
   }
 
   /* =====================================================================
