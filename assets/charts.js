@@ -88,12 +88,31 @@
     for (let i = 0; i <= ticks; i++) {
       const t = tMin + (i / ticks) * (tMax - tMin);
       const d = new Date(t);
-      const lbl = days > 2
-        ? (d.getMonth() + 1) + '/' + d.getDate()
-        : d.toLocaleTimeString([], { hour: 'numeric' });
+      let lbl;
+      if (opts.xMode === 'datetime') {
+        lbl = (d.getMonth() + 1) + '/' + d.getDate() + ' ' +
+          d.toLocaleTimeString([], { hour: 'numeric' }).replace(/\s?([AP])M/i, (m, p) => p.toLowerCase());
+      } else {
+        lbl = days > 2 ? (d.getMonth() + 1) + '/' + d.getDate()
+          : d.toLocaleTimeString([], { hour: 'numeric' });
+      }
       const tx = el('text', { x: X(t).toFixed(1), y: H - 12, class: 'ax', 'text-anchor': 'middle' });
       tx.textContent = lbl;
       svg.appendChild(tx);
+    }
+
+    // midnight markers, so a daily cycle is easy to line up
+    if (opts.dayLines) {
+      const d0 = new Date(tMin);
+      d0.setHours(24, 0, 0, 0);
+      for (let t = +d0; t <= tMax; t += 86400000) {
+        svg.appendChild(el('line', {
+          x1: X(t).toFixed(1), y1: padT, x2: X(t).toFixed(1), y2: (padT + ph).toFixed(1), class: 'daymark'
+        }));
+        const dl = el('text', { x: (X(t) + 5).toFixed(1), y: padT + 11, class: 'daylbl' });
+        dl.textContent = new Date(t).toLocaleDateString([], { weekday: 'short' });
+        svg.appendChild(dl);
+      }
     }
 
     // threshold

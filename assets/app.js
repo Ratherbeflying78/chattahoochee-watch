@@ -571,8 +571,83 @@
       Charts.lineChart($('#damChart'), [
         { name: 'Inflow at Franklin', color: '#4ade80', points: clip(inRec) },
         { name: 'Release below the dam', color: '#38bdf8', points: clip(outRec), fill: true }
-      ], { yDp: 0, unit: 'cfs', height: 300 });
+      ], { yDp: 0, unit: 'cfs', height: 300, xMode: 'datetime', xTicks: 8, dayLines: true, minZero: true });
     }
+    renderDamClock(outRec);
+  }
+
+  /* Average release by hour of local time over the last two weeks. This is the
+     answer to "when does it generate" — the daily cycle is far more repeatable
+     than the day-to-day totals. */
+  function renderDamClock(outRec) {
+    const box = $('#damClock');
+    if (!box) return;
+    if (!outRec || !outRec.points || outRec.points.length < 48) {
+      box.innerHTML = '<div class="err">Not enough release history to profile the day.</div>';
+      return;
+    }
+    const sum = new Array(24).fill(0), n = new Array(24).fill(0);
+    outRec.points.forEach(p => {
+      if (!isFinite(p.v)) return;
+      const h = new Date(p.t).getHours();
+      sum[h] += p.v; n[h]++;
+    });
+    const avg = sum.map((s, h) => (n[h] ? s / n[h] : null));
+    const have = avg.filter(v => v !== null);
+    if (have.length < 12) { box.innerHTML = '<div class="err">Not enough release history to profile the day.</div>'; return; }
+
+    const lo = Math.min.apply(null, have), hi = Math.max.apply(null, have);
+    const mid = lo + (hi - lo) * 0.45;                    // "generating" cutoff
+    const on = avg.map(v => v !== null && v > mid);
+    const nowH = new Date().getHours();
+
+    // Longest run of generating hours, wrapping past midnight.
+    let best = null;
+    for (let s = 0; s < 24; s++) {
+      if (!on[s] || on[(s + 23) % 24]) continue;          // only start at a rising edge
+      let len = 0;
+      while (len < 24 && on[(s + len) % 24]) len++;
+      if (!best || len > best.len) best = { start: s, len: len };
+    }
+    const hr = h => {
+      const d = new Date(); d.setHours(h, 0, 0, 0);
+      return d.toLocaleTimeString([], { hour: 'numeric' });
+    };
+
+    const rawMax = hi * 1.08;
+    const mag = Math.pow(10, Math.floor(Math.log10(rawMax)));
+    const yMax = Math.ceil(rawMax / (mag / 2)) * (mag / 2);   // round the axis to something readable
+    const W = 960, H = 190, padL = 56, padB = 34, padT = 14;
+    const bw = (W - padL - 14) / 24;
+    const bars = avg.map((v, h) => {
+      const x = padL + h * bw;
+      if (v === null) return '';
+      const bh = (v / yMax) * (H - padT - padB);
+      const y = H - padB - bh;
+      return `<rect class="dcbar ${on[h] ? 'on' : 'off'}${h === nowH ? ' now' : ''}"
+        x="${(x + 2).toFixed(1)}" y="${y.toFixed(1)}" width="${(bw - 4).toFixed(1)}" height="${Math.max(1, bh).toFixed(1)}" rx="2">
+        <title>${hr(h)} — ${F(v, 0)} cfs average</title></rect>`;
+    }).join('');
+    const axis = [0, 3, 6, 9, 12, 15, 18, 21].map(h =>
+      `<text class="dcax" x="${(padL + h * bw + bw / 2).toFixed(1)}" y="${H - 12}" text-anchor="middle">${hr(h)}</text>`).join('');
+    const gl = [0, 0.5, 1].map(f => {
+      const v = yMax * f, y = H - padB - f * (H - padT - padB);
+      return `<line class="dcgrid" x1="${padL}" y1="${y.toFixed(1)}" x2="${W - 14}" y2="${y.toFixed(1)}"/>
+        <text class="dcax" x="${padL - 8}" y="${(y + 4).toFixed(1)}" text-anchor="end">${F(v, 0)}</text>`;
+    }).join('');
+
+    box.innerHTML = `
+      <svg class="damclock" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img"
+           aria-label="Average release below West Point Dam by hour of day">${gl}${bars}${axis}</svg>
+      <p class="cap">${best && best.len < 24
+        ? `Over the last two weeks the powerhouse has typically run from about <b>${hr(best.start)}</b> to
+           <b>${hr((best.start + best.len) % 24)}</b> — roughly <b>${best.len} hours</b> a day — and sat near its minimum
+           release the rest of the time. Highlighted bars are the generating window; the outlined bar is the current hour
+           (${hr(nowH)}). Times are local (Eastern).`
+        : `Release has not followed a clean daily on/off pattern over the last two weeks — the dam has been passing
+           flow more steadily, which usually means high inflow rather than peaking.`}
+        This is an average of the actual gauge, not a published schedule: the Corps changes generation daily with
+        demand, rainfall and downstream needs, so treat it as a tendency, never as a guarantee before you get in the water.</p>`;
   }
 
   /* =====================================================================

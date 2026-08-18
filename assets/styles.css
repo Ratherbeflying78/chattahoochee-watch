@@ -486,4 +486,12 @@ table.crk td.spk{padding:4px 10px;width:1%}
   .damsvg .dturb.spin, .damsvg .dstatus.on circle { animation:none }
   .damsvg .djetp, .damsvg .dchev { opacity:.85 }
 }.damsvg .dmouth { fill:#0b1728; stroke:#8fd7f0; stroke-width:1.4 }
-.damsvg .djetbody { filter:drop-shadow(0 0 6px rgba(140,220,255,.45)) }.damsvg .dbed.sub { fill:#1b2b45; fill-opacity:.92; stroke:#3c527a; stroke-width:1 }.damsvg .dtitle { fill:#8fa6c4; font-size:11px; font-weight:800; letter-spacing:.14em }
+.damsvg .djetbody { filter:drop-shadow(0 0 6px rgba(140,220,255,.45)) }.damsvg .dbed.sub { fill:#1b2b45; fill-opacity:.92; stroke:#3c527a; stroke-width:1 }.damsvg .dtitle { fill:#8fa6c4; font-size:11px; font-weight:800; letter-spacing:.14em }/* hour-of-day generation profile */
+.damclock { display:block; width:100%; height:190px }
+.damclock .dcbar { fill:#2b4468 }
+.damclock .dcbar.on { fill:#38bdf8 }
+.damclock .dcbar.now { stroke:#fbbf24; stroke-width:2 }
+.damclock .dcgrid { stroke:#1d2b45; stroke-width:1 }
+.damclock .dcax { fill:#8fa6c4; font-size:11px }
+.chart .daymark { stroke:#33456a; stroke-width:1; stroke-dasharray:4 4 }
+.chart .daylbl { fill:#7f97b5; font-size:10px; font-weight:700; letter-spacing:.08em }
