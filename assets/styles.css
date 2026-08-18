@@ -1,4 +1,4 @@
-ï»¿:root{
+:root{
   --bg:#070d18; --card:#101a2e; --card2:#16233c; --line:#22314f;
   --ink:#e9effc; --dim:#8ba1c6; --dim2:#64789f;
   --cur:#38bdf8; --avg:#55688f; --hist:#39486a;
@@ -299,7 +299,7 @@ table.crk td.spk{padding:4px 10px;width:1%}
 #reachMap.slippy .leaflet-container { background:#0a1424; font:inherit; height:100%; border-radius:10px; }
 .leaflet-container a { color:#7dd3fc; }
 
-/* numbered site markers â€” round for river and lake, square for creeks */
+/* numbered site markers — round for river and lake, square for creeks */
 .rmk { display:flex; align-items:center; justify-content:center;
   width:24px; height:24px; border-radius:50%; font-size:11px; font-weight:700;
   color:#04101f; background:#7c8aa0; border:2px solid rgba(4,16,31,.75);
@@ -336,7 +336,7 @@ table.crk td.spk{padding:4px 10px;width:1%}
 .leaflet-control-attribution { background:rgba(10,20,36,.8) !important; color:#8fa6c2 !important; font-size:10px; }
 .leaflet-control-scale-line { background:rgba(10,20,36,.7); color:#dbe7f5; border-color:#8fa6c2; }
 
-/* The generic "svg fills the map box" rule must not touch Leaflet's own SVG â€”
+/* The generic "svg fills the map box" rule must not touch Leaflet's own SVG —
    it was stretching the tiny attribution flag to a quarter of the map. */
 #reachMap.slippy svg { width:auto; height:auto; max-height:none; }
 .leaflet-attribution-flag { width:12px !important; height:8px !important; display:inline-block !important; }
@@ -372,3 +372,23 @@ table.crk td.spk{padding:4px 10px;width:1%}
 .rcl.warn { background:var(--warn); box-shadow:0 0 0 4px rgba(251,191,36,.22) }
 .rcl.bad  { background:var(--bad);  box-shadow:0 0 0 4px rgba(248,113,113,.25) }
 .leaflet-cluster-anim .leaflet-marker-icon { transition:transform .25s ease-out, opacity .25s ease-in }
+
+/* ---- corridor map gauge pins (River water flow tab) ---- */
+#riverMap.slippy { display:block; height:600px; max-height:none; padding:0;
+  background:#0a1424; border:1px solid #1e2f4a; border-radius:10px }
+#riverMap.slippy .leaflet-container { background:#0a1424; font:inherit; height:100%; border-radius:10px }
+#riverMap.slippy svg { width:auto; height:auto; max-height:none }
+@media(max-width:860px){ #riverMap.slippy{height:420px} }
+
+.gpin { position:absolute; transform:translate(-50%,-50%); white-space:nowrap; cursor:pointer }
+.gdot { display:block; border-radius:50%; border:2px solid rgba(4,16,31,.8);
+  box-shadow:0 1px 5px rgba(0,0,0,.65); flex:0 0 auto }
+.glab { position:absolute; left:calc(100% + 6px); top:50%; transform:translateY(-50%); display:flex; align-items:baseline; gap:5px; font-size:11px; line-height:1.1;
+  background:rgba(8,18,34,.86); border:1px solid #24395c; border-radius:6px; padding:3px 7px;
+  color:#dbe7f5; box-shadow:0 1px 5px rgba(0,0,0,.5) }
+.glab b { font-weight:600 }
+.glab .gv { font-weight:700; color:#7dd3fc }
+.glab .gv.dim { color:var(--dim2); font-weight:400 }
+.glab em { font-style:normal; font-size:10px }
+.glab em.up { color:var(--good) } .glab em.down { color:var(--warn) } .glab em.flat { color:var(--dim2) }
+.gpin.sel .glab { border-color:#7dd3fc; box-shadow:0 0 0 2px rgba(125,211,252,.35) }

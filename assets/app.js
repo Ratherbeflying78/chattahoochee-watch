@@ -572,8 +572,7 @@
       ti.textContent = `${s.name} — ${s.sub}\n${METRICS[MAP_METRIC].label}: ${m ? m.txt : 'not reported'}`;
       g.appendChild(ti);
 
-      const pick = () => { MAP_SEL = s.id; renderMap(); showStation(s.id); };
-      [g, lg].forEach(node => {
+      const pick = () => { MAP_SEL = s.id; renderMap(); showStation(s.id); };      [g, lg].forEach(node => {
         node.addEventListener('click', pick);
         node.addEventListener('mouseenter', () => showStation(s.id, true));
       });
@@ -607,7 +606,7 @@
       L.innerHTML = sw('#38bdf8', 'Gauge reading') + '<span>Reservoirs show pool elevation; rivers show stage</span>';
     }
     L.innerHTML += '<span><b style="color:#4ade80">▲</b> rising / <b style="color:#fbbf24">▼</b> falling over 24 hours</span>';
-    L.innerHTML += '<span class="dim">Geometry © OpenStreetMap contributors</span>';
+    L.innerHTML += '<span class="dim">Drag to pan · ctrl+wheel or the buttons to zoom · basemaps © OpenStreetMap, CARTO, Esri</span>';
   }
 
   function showStation(id, hover) {
@@ -667,6 +666,102 @@
       ${primary ? `<p class="sloc" style="margin:12px 0 0">Change shown is over 24 hours · updated ${esc(upd)}</p>` : ''}
       <p class="sloc" style="margin-top:10px">
         <a href="https://waterdata.usgs.gov/monitoring-location/${esc(id)}/" target="_blank" rel="noopener">USGS ${esc(id)} ↗</a></p>`;
+  }
+
+  /* ---- corridor map, Leaflet version -------------------------------------
+     Same map component as the Water Quality tab so the two tabs read alike:
+     the difference is only what the markers are coloured by. */
+  let CMAP = null, CLAYER = null, CMARK = {};
+
+  function baseLayers(map) {
+    const att = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+    const carto = ' &copy; <a href="https://carto.com/attributions">CARTO</a>';
+    const street = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+      { attribution: att + carto, maxZoom: 19 });
+    const dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+      { attribution: att + carto, maxZoom: 19 });
+    const sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      { attribution: 'Imagery &copy; Esri, Maxar, Earthstar Geographics', maxZoom: 18 });
+    street.addTo(map);
+    return { 'Streets & labels': street, 'Dark': dark, 'Satellite': sat };
+  }
+
+  function gaugeIcon(s) {
+    const m = metricValue(s, MAP_METRIC);
+    const color = metricColor(s, MAP_METRIC, m);
+    const d = m ? Math.round(metricRadius(MAP_METRIC, m) * 2) : 10;
+    const tr = m ? metricTrend(s, MAP_METRIC, m) : null;
+    let arrow = '';
+    if (tr) {
+      const eps = Math.pow(10, -tr.dp) * 5;
+      arrow = Math.abs(tr.d) < eps ? '<em class="flat">■</em>'
+        : `<em class="${tr.d > 0 ? 'up' : 'down'}">${tr.d > 0 ? '▲' : '▼'}</em>`;
+    }
+    const sel = MAP_SEL === s.id ? ' sel' : '';
+    return L.divIcon({
+      className: '',
+      html: `<span class="gpin${sel}">
+        <i class="gdot" style="background:${color};width:${d}px;height:${d}px"></i>
+        <span class="glab"><b>${esc(s.name)}</b>${m ? `<span class="gv">${esc(m.txt)}</span>` : '<span class="gv dim">no data</span>'}${arrow}</span>
+      </span>`,
+      iconSize: [0, 0], iconAnchor: [0, 0],
+    });
+  }
+
+  function renderCorridorMap() {
+    const box = $('#riverMap');
+    if (!box) return;
+    if (!window.L) return renderMap();                 // hand-drawn fallback
+    if (!Object.keys(DATA.sites || {}).length) return;
+
+    if (!CMAP) {
+      box.classList.add('slippy');
+      box.innerHTML = '';
+      CMAP = L.map(box, { scrollWheelZoom: false, zoomSnap: 0.5 });
+      CMAP.on('focus', () => CMAP.scrollWheelZoom.enable());
+      CMAP.on('blur', () => CMAP.scrollWheelZoom.disable());
+      L.control.layers(baseLayers(CMAP), null, { position: 'topright' }).addTo(CMAP);
+      L.control.scale({ imperial: true, metric: true, position: 'bottomleft' }).addTo(CMAP);
+      CLAYER = L.layerGroup().addTo(CMAP);
+      CMAP.on('zoomend moveend', layoutGaugeLabels);
+      CMAP.fitBounds(L.latLngBounds(STATIONS.map(s => [s.lat, s.lon])), { padding: [30, 30] });
+    }
+
+    CLAYER.clearLayers();
+    CMARK = {};
+    STATIONS.forEach(s => {
+      const m = L.marker([s.lat, s.lon], { icon: gaugeIcon(s), riseOnHover: true, title: s.name + ' — ' + s.sub });
+      m.on('click', () => { MAP_SEL = s.id; renderCorridorMap(); showStation(s.id); });
+      m.on('mouseover', () => showStation(s.id, true));
+      m.addTo(CLAYER);
+      CMARK[s.id] = m;
+    });
+
+    renderLegend();
+    if (!MAP_SEL) showStation(null);
+    layoutGaugeLabels();
+  }
+
+  /* Six gauges sit within a few miles through metro Atlanta, so their labels
+     overlap at corridor zoom. Push each one down until it clears the last. */
+  function layoutGaugeLabels() {
+    if (!CMAP) return;
+    const items = STATIONS.map(s => {
+      const m = CMARK[s.id];
+      const el = m && m.getElement && m.getElement();
+      return el ? { el: el.querySelector('.glab'), y: CMAP.latLngToContainerPoint([s.lat, s.lon]).y } : null;
+    }).filter(x => x && x.el).sort((a, b) => a.y - b.y);
+
+    let lastY = -1e6;
+    items.forEach(it => {
+      const want = Math.max(it.y, lastY + 19);
+      it.el.style.transform = `translateY(calc(-50% + ${(want - it.y).toFixed(1)}px))`;
+      lastY = want;
+    });
+  }
+
+  function resizeCorridorMap() {
+    if (CMAP) setTimeout(() => CMAP.invalidateSize(), 60);
   }
 
   function renderRiver() {
@@ -1246,16 +1341,8 @@
       RMAP.on('focus', () => RMAP.scrollWheelZoom.enable());
       RMAP.on('blur', () => RMAP.scrollWheelZoom.disable());
 
-      const att = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
-      const dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-        { attribution: att + ' &copy; <a href="https://carto.com/attributions">CARTO</a>', maxZoom: 19 });
-      const street = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-        { attribution: att + ' &copy; <a href="https://carto.com/attributions">CARTO</a>', maxZoom: 19 });
-      const sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        { attribution: 'Imagery &copy; Esri, Maxar, Earthstar Geographics', maxZoom: 18 });
-      // Streets is the default: on a dark basemap the lake and its feeder creeks
-      // are nearly invisible, and creek and road names are the point of this map.
-      street.addTo(RMAP);
+      const layers = baseLayers(RMAP);
+
       // Cluster the sites: metro Atlanta alone has ~90 within a few miles, which
       // stacks into an unreadable blob at corridor zoom. Clusters carry the worst
       // result they contain so a red group still reads as red from far out.
@@ -1283,7 +1370,7 @@
       RGAUGES = L.layerGroup().addTo(RMAP);
 
       L.control.layers(
-        { 'Streets & labels': street, 'Dark': dark, 'Satellite': sat },
+        layers,
         { 'Sampling sites': RLAYER, 'USGS gauges': RGAUGES },
         { position: 'topright' }
       ).addTo(RMAP);
@@ -1695,14 +1782,16 @@
   function loadAll() {
     $('#updated').textContent = 'Refreshing…';
     const water = loadWater().then(() => {
-      renderLake(); renderRiver(); renderQuality(); renderBasinRain(); renderMap();
+      renderLake(); renderRiver(); renderQuality(); renderBasinRain(); renderCorridorMap();
     }).catch(e => {
       console.error(e);
       ['#lakeHero', '#riverProfile', '#qualityVerdict'].forEach(s =>
         err(s, 'Could not reach the USGS water service. It may be briefly down — try Refresh.'));
     });
 
-    const geo = loadGeo().then(() => { renderMap(); renderReachMap(); })
+    // Geometry is only needed by the hand-drawn fallback maps now, but the
+    // reach map still waits on it so the fallback path stays whole.
+    const geo = loadGeo().then(() => { renderCorridorMap(); renderReachMap(); })
       .catch(e => { console.error(e); err('#riverMap', 'Map geometry could not be loaded.'); });
 
     const weather = loadWeather().then(renderWeather)
@@ -1723,7 +1812,7 @@
     $$('#metricBar .mbtn').forEach(o => o.classList.remove('active'));
     b.classList.add('active');
     MAP_METRIC = b.dataset.metric;
-    renderMap();
+    renderCorridorMap();
   }));
 
   $$('#reachBar .mbtn').forEach(b => b.addEventListener('click', () => {
@@ -1752,10 +1841,11 @@
     if (p) p.classList.add('active');
     if (t.dataset.panel === 'cams') renderCams();
     if (t.dataset.panel === 'quality') resizeReachMap();
+    if (t.dataset.panel === 'river') resizeCorridorMap();
     if (location.hash !== '#' + t.dataset.panel) history.replaceState(null, '', '#' + t.dataset.panel);
   }));
 
-  addEventListener('resize', resizeReachMap);
+  addEventListener('resize', () => { resizeReachMap(); resizeCorridorMap(); });
 
   if (location.hash) {
     const t = $$('.tab').find(x => '#' + x.dataset.panel === location.hash);

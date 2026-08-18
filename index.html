@@ -24,7 +24,7 @@
   </div>
   <nav class="wrap tabs" id="tabs">
     <button class="tab active" data-panel="now">Lake Now</button>
-    <button class="tab" data-panel="river">River Profile</button>
+    <button class="tab" data-panel="river">River water flow</button>
     <button class="tab" data-panel="quality">Water Quality</button>
     <button class="tab" data-panel="weather">Weather</button>
     <button class="tab" data-panel="cams">Cameras</button>
@@ -64,10 +64,11 @@
 
   <!-- ================= RIVER ================= -->
   <section class="panel" id="panel-river">
-    <div class="card">
-      <h3>The river, mapped</h3>
-      <p class="cap">Real Chattahoochee geometry from Buford Dam to West Point, with every active gauge in place.
-        Pick a metric, then hover or tap any station to read it.</p>
+    <div class="card hero">
+      <h3>Water moving down the river, gauge by gauge</h3>
+      <p class="cap">Every active USGS gauge from Buford Dam to West Point, on the same map as the Water Quality
+        tab. Pick a metric — each pin shows its live reading and whether it has risen or fallen over 24 hours.
+        Click a pin for everything that gauge reports.</p>
       <div class="metricbar" id="metricBar">
         <button class="mbtn active" data-metric="flow">Streamflow</button>
         <button class="mbtn" data-metric="level">Stage / pool</button>
