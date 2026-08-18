@@ -496,10 +496,12 @@
         <path class="dhouse" d="M${xR + 54} ${dY(590).toFixed(1)} L${xR + 54} ${phTop.toFixed(1)}
           L${xPh} ${phTop.toFixed(1)} L${xPh} ${dY(590).toFixed(1)} Z"/>
         <rect class="dhouseroof" x="${xR + 48}" y="${(phTop - 11).toFixed(1)}" width="${xPh - xR - 42}" height="11" rx="3"/>
-        <g class="dturb ${gen ? 'spin' : ''}" transform="translate(${(xR + 74)} ${dY(601).toFixed(1)})">
-          <circle class="dhub" r="20"/>
-          ${[0, 45, 90, 135, 180, 225, 270, 315].map(a => `<line y2="-20" transform="rotate(${a})"/>`).join('')}
-          <circle class="dcap" r="4"/>
+        <g transform="translate(${(xR + 74)} ${dY(601).toFixed(1)})">
+          <g class="dturb ${gen ? 'spin' : ''}">
+            <circle class="dhub" r="20"/>
+            ${[0, 45, 90, 135, 180, 225, 270, 315].map(a => `<line y2="-20" transform="rotate(${a})"/>`).join('')}
+            <circle class="dcap" r="4"/>
+          </g>
         </g>
         <rect class="dmouth" x="${xPh - 6}" y="${(outlet - jetH / 2 - 3).toFixed(1)}" width="8" height="${(jetH + 6).toFixed(1)}" rx="2"/>
         <text class="dpart" x="${xR + 58}" y="${(phTop - 19).toFixed(1)}">POWERHOUSE</text>
@@ -511,7 +513,7 @@
         <path class="dbed sub" d="M${xPh} ${DAM.bot} L${xPh} ${dY(552).toFixed(1)}
           C ${xPh + 120} ${(bedTail + 6).toFixed(1)}, ${W - 220} ${bedTail.toFixed(1)}, ${W} ${(bedTail - 6).toFixed(1)}
           L${W} ${DAM.bot} Z"/>
-        <g class="dwave fast"><path d="${damWave(yTw, 3.6, W - xPh)}" transform="translate(${xPh} 0)"/></g>
+        <g class="dwave fast" transform="translate(${xPh} 0)"><path d="${damWave(yTw, 3.6, W - xPh)}"/></g>
 
         <!-- the jet, thickness set by the live release -->
         <path class="djetbody" fill="url(#djet)" d="M${xPh} ${(outlet - jetH / 2).toFixed(1)}
