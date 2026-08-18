@@ -1676,13 +1676,15 @@
     }
 
     if (crkView === 'wpl') {
-      const wpl = sites.filter(s => (s.lat >= WPL_BOX.s && s.lat <= WPL_BOX.n &&
-        s.lon >= WPL_BOX.w && s.lon <= WPL_BOX.e) || /west point/i.test(s.name));
+      const wpl = sites.filter(s => ON_WATER_RE.test(s.name) &&
+        ((s.lat >= WPL_BOX.s && s.lat <= WPL_BOX.n && s.lon >= WPL_BOX.w && s.lon <= WPL_BOX.e) ||
+          /west point/i.test(s.name)));
       wpl.sort((a, b) => (crkLatest(b) ? crkLatest(b).ec : -1) - (crkLatest(a) ? crkLatest(a).ec : -1));
       box.innerHTML = crkTable(wpl.map(crkRow).filter(Boolean));
-      $('#crkNote').innerHTML = `Every Riverkeeper sampling site on and around West Point Lake, worst first.
-        Coves and creek arms hold bacteria far longer than open water, so a hot reading in one cove says little
-        about the main lake. <b>&lt;50</b> means nothing was detected.`;
+      $('#crkNote').innerHTML = `Riverkeeper's sampling sites on West Point Lake and the river running into and out
+        of it, worst first — the feeder creeks they also sample are left out here. Coves hold bacteria far longer
+        than open water, so a hot reading at one dock says little about the main lake. <b>&lt;50</b> means nothing
+        was detected.`;
       return;
     }
 
@@ -1719,6 +1721,10 @@
   let REACH_SCOPE = 'reach';
   const scopeBox = () => SCOPES[REACH_SCOPE];
   const CREEK_RE = /creek|tributary|wehadkee|branch|trib\b/i;
+  // Only sites on the water itself — the lake, the mainstem river, Lanier.
+  // Riverkeeper samples a lot of small feeder creeks miles from either, and
+  // plotting those on a lake map just puts dots out in the woods.
+  const ON_WATER_RE = /^(west point lake|chattahoochee river|lake sidney lanier|lake lanier)\b/i;
   const STALE_DAYS = 21;          // NWW samples weekly; older than this is not "current"
   let REACH_SEL = null;
 
@@ -1733,6 +1739,7 @@
     if (!C || !C.nww) return [];
     const B = scopeBox();
     return C.nww
+      .filter(s => ON_WATER_RE.test(s.name))
       .filter(s => s.lat >= B.s && s.lat <= B.n && s.lon >= B.w && s.lon <= B.e)
       .filter(s => crkLatest(s))
       .sort((a, b) => b.lat - a.lat)                    // downstream order
@@ -1740,7 +1747,7 @@
         const age = daysOld(crkLatest(s).d);
         return Object.assign({}, s, {
           no: i + 1,
-          creek: CREEK_RE.test(s.name),
+          creek: false,
           age: age,
           stale: age === null || age > STALE_DAYS,
         });
@@ -1900,8 +1907,8 @@
 
     renderReachList(sites, select);
     $('#reachNote').innerHTML = reachNoteHTML(sites,
-      `Only the Chattahoochee itself is drawn, so a square sitting away from blue water is a creek being sampled
-       before it reaches the lake. Triangles are the USGS gauges that feed the rest of this dashboard.`);
+      `Every marker sits on open water — a lake site is a park, ramp or dock on the shoreline, and a river site
+       is the mainstem itself. Triangles are the USGS gauges that feed the rest of this dashboard.`);
   }
 
   /* The list beside the map. Shared by both renderers so the two always agree. */
@@ -1929,10 +1936,9 @@
     const fresh = sites.filter(s => !s.stale);
     const bad = fresh.filter(s => crkLatest(s).ec >= ECOLI_THRESHOLD).length;
     const stale = sites.length - fresh.length;
-    const lakeN = sites.filter(s => !s.creek).length;
     const where = REACH_SCOPE === 'reach' ? 'in this reach' : 'along the corridor';
-    return `${sites.length} Riverkeeper sites ${where} — ${lakeN} on the river and lake
-      (circles) and ${sites.length - lakeN} on feeder creeks (squares). Of the ${fresh.length} sampled in the last
+    return `${sites.length} Riverkeeper sites ${where}, all of them on the lake or the river itself — feeder
+      creeks are left off this map. Of the ${fresh.length} sampled in the last
       ${STALE_DAYS} days, ${bad ? `<b>${bad}</b> came back at or above` : 'none reached'} the 235 MPN/100 mL contact
       limit.${stale ? ` ${stale} site${stale > 1 ? 's are' : ' is'} drawn faded because ${stale > 1 ? 'their' : 'its'}
       last result is older than that — historical, not current.` : ''} ${tail}`;
@@ -2085,12 +2091,11 @@
     if (!RMAP._fitted) { fitReach(); RMAP._fitted = true; }
     renderReachList(sites, select);
     $('#reachNote').innerHTML = reachNoteHTML(sites, REACH_SCOPE === 'reach'
-      ? `Drag to pan and use the buttons — or ctrl and the scroll wheel — to zoom in on any creek mouth or boat ramp.
+      ? `Drag to pan and use the buttons — or ctrl and the scroll wheel — to zoom in on any cove or boat ramp.
          Switch to <b>Dark</b> to match the rest of the page or <b>Satellite</b> to see the shoreline itself.
          Triangles are the USGS gauges that feed the rest of this dashboard.`
-      : `This is the whole corridor Riverkeeper samples, from the Lanier headwaters through metro Atlanta down to
-         the West Point tailwater. The red cluster through Atlanta is urban creeks, not the river itself — zoom in
-         to see which creek each square sits on.`);
+      : `This is the whole corridor, from the Lanier headwaters through metro Atlanta down to the West Point
+         tailwater — mainstem and lake sites only. Riverkeeper's urban creek sampling is in the tables below.`);
   }
 
   function fitReach() {

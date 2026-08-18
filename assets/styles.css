@@ -256,7 +256,7 @@ table.crk td.spk{padding:4px 10px;width:1%}
 .reachlayout{display:grid;grid-template-columns:minmax(300px,1.05fr) minmax(260px,1fr);gap:16px;align-items:start}
 @media(max-width:860px){.reachlayout{grid-template-columns:1fr}}
 #reachMap{display:grid;place-items:center}
-#reachMap svg{width:100%;height:auto;max-height:780px;display:block;border-radius:10px}
+#reachMap svg{width:100%;height:auto;max-height:900px;display:block;border-radius:10px}
 .reachlist{max-height:620px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;padding-right:4px}
 .rl{display:flex;align-items:flex-start;gap:9px;width:100%;text-align:left;cursor:pointer;
   background:#0e1a2f;border:1px solid #1b2942;border-left:3px solid var(--dim2);
@@ -345,9 +345,9 @@ table.crk td.spk{padding:4px 10px;width:1%}
 .card.hero { padding:18px 20px 16px; border-color:#2a4368;
   background:linear-gradient(180deg,#101d33 0%,#0d1729 100%); }
 .card.hero h3 { font-size:20px; }
-.card.hero .reachlayout { grid-template-columns:minmax(320px,1.55fr) minmax(280px,1fr); }
-.card.hero #reachMap.slippy { height:700px; }
-.card.hero .reachlist { max-height:700px; }
+.card.hero .reachlayout { grid-template-columns:minmax(360px,2.15fr) minmax(250px,0.85fr); }
+.card.hero #reachMap.slippy { height:820px; }
+.card.hero .reachlist { max-height:820px; }
 @media(max-width:860px){ .card.hero #reachMap.slippy{height:460px} .card.hero .reachlist{max-height:340px} }
 
 .maplegend { display:flex; flex-wrap:wrap; gap:14px; margin-top:12px;
