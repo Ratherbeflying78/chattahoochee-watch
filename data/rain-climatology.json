@@ -105,7 +105,7 @@
    "month": 8,
    "name": "Aug",
    "cur_days": 18,
-   "cur_in": 1.9,
+   "cur_in": 1.92,
    "avg_days": 20.2,
    "avg_in": 4.42,
    "min_days": 13,
@@ -226,12 +226,12 @@
   {
    "year": 2026,
    "days": 131,
-   "inches": 36.9
+   "inches": 36.91
   }
  ],
  "ytd": {
   "days": 131,
-  "inches": 36.9,
+  "inches": 36.91,
   "avg_days": 119.6,
   "avg_inches": 35.21,
   "min_days": 106,
@@ -257,6 +257,6 @@
  },
  "driest_gap": {
   "name": "Aug",
-  "gap": -2.52
+  "gap": -2.5
  }
 }
