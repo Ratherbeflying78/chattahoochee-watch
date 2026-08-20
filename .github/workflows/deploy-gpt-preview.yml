@@ -1,0 +1,53 @@
+name: Deploy GPT preview
+
+on:
+  push:
+    branches: [ratherbeflying78-gpt-dashboard-redesign]
+    paths:
+      - 'index.html'
+      - 'assets/**'
+      - 'data/**'
+      - 'vendor/**'
+      - '.nojekyll'
+      - '.github/workflows/deploy-gpt-preview.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Share the production deployment lock so Pages never receives competing artifacts.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out production site
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: site
+
+      - name: Check out preview design
+        uses: actions/checkout@v4
+        with:
+          path: preview
+
+      - name: Add preview below production root
+        run: |
+          mkdir -p site/gpt-preview
+          rsync -a --delete \
+            --exclude=.git \
+            --exclude=.github \
+            preview/ site/gpt-preview/
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4
