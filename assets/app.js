@@ -2516,9 +2516,13 @@
 
   // tabs
   $$('.tab').forEach(t => t.addEventListener('click', () => {
-    $$('.tab').forEach(x => x.classList.remove('active'));
+    $$('.tab').forEach(x => {
+      x.classList.remove('active');
+      x.setAttribute('aria-selected', 'false');
+    });
     $$('.panel').forEach(x => x.classList.remove('active'));
     t.classList.add('active');
+    t.setAttribute('aria-selected', 'true');
     const p = document.getElementById('panel-' + t.dataset.panel);
     if (p) p.classList.add('active');
     if (t.dataset.panel === 'cams') renderCams();
@@ -2526,6 +2530,22 @@
     if (t.dataset.panel === 'river') resizeCorridorMap();
     if (location.hash !== '#' + t.dataset.panel) history.replaceState(null, '', '#' + t.dataset.panel);
   }));
+
+  // Keep the tab strip usable without a mouse and make the identity mark a
+  // dependable route back to the live lake overview from any operations view.
+  $$('#tabs .tab').forEach((tab, index, tabs) => tab.addEventListener('keydown', e => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+    e.preventDefault();
+    const next = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 :
+      (index + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+    tabs[next].focus();
+    tabs[next].click();
+  }));
+  $('.brand').addEventListener('click', e => {
+    e.preventDefault();
+    const home = $$('.tab').find(t => t.dataset.panel === 'now');
+    if (home) home.click();
+  });
 
   addEventListener('resize', () => { resizeReachMap(); resizeCorridorMap(); });
 

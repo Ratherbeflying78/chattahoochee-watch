@@ -11,32 +11,38 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>"/>
 </head>
 <body>
+<a class="skip-link" href="#mainContent">Skip to live conditions</a>
 <header class="top">
   <div class="wrap topbar">
-    <div>
-      <h1>Chattahoochee Watch</h1>
-      <p class="tagline">West Point Lake &amp; the Chattahoochee River — Buford Dam to LaGrange, live</p>
-    </div>
+    <a class="brand" href="#now" aria-label="Chattahoochee Watch home">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="brand-copy">
+        <span class="brand-kicker">River + lake operations</span>
+        <h1 class="brand-name">Chattahoochee Watch</h1>
+        <span class="tagline">Buford Dam to LaGrange, Georgia</span>
+      </span>
+    </a>
     <div class="status">
-      <span id="updated" class="upd">Loading live data…</span>
+      <span class="live-dot" aria-hidden="true"></span>
+      <span id="updated" class="upd" aria-live="polite">Loading live data…</span>
       <button id="refresh" class="btn" type="button">Refresh</button>
     </div>
   </div>
-  <nav class="wrap tabs" id="tabs">
-    <button class="tab active" data-panel="now">Lake Now</button>
-    <button class="tab" data-panel="river">River water flow</button>
-    <button class="tab" data-panel="dam">The Dam</button>
-    <button class="tab" data-panel="quality">Water Quality</button>
-    <button class="tab" data-panel="weather">Weather</button>
-    <button class="tab" data-panel="cams">Cameras</button>
-    <button class="tab" data-panel="rain">Rain vs Normal</button>
+  <nav class="wrap tabs" id="tabs" aria-label="Operations views" role="tablist">
+    <button class="tab active" data-panel="now" role="tab" aria-selected="true" aria-controls="panel-now">Lake Now</button>
+    <button class="tab" data-panel="river" role="tab" aria-selected="false" aria-controls="panel-river">River water flow</button>
+    <button class="tab" data-panel="dam" role="tab" aria-selected="false" aria-controls="panel-dam">The Dam</button>
+    <button class="tab" data-panel="quality" role="tab" aria-selected="false" aria-controls="panel-quality">Water Quality</button>
+    <button class="tab" data-panel="weather" role="tab" aria-selected="false" aria-controls="panel-weather">Weather</button>
+    <button class="tab" data-panel="cams" role="tab" aria-selected="false" aria-controls="panel-cams">Cameras</button>
+    <button class="tab" data-panel="rain" role="tab" aria-selected="false" aria-controls="panel-rain">Rain vs Normal</button>
   </nav>
 </header>
 
-<main class="wrap">
+<main class="wrap" id="mainContent" tabindex="-1">
 
   <!-- ================= LAKE NOW ================= -->
-  <section class="panel active" id="panel-now">
+  <section class="panel active" id="panel-now" role="tabpanel">
     <div class="hero card" id="lakeHero">
       <div class="skel h">Reading West Point Lake gauge…</div>
     </div>
@@ -64,7 +70,7 @@
   </section>
 
   <!-- ================= DAM ================= -->
-  <section class="panel" id="panel-dam">
+  <section class="panel" id="panel-dam" role="tabpanel">
     <div class="card hero damcard">
       <h3>West Point Dam, right now</h3>
       <p class="cap">A live cross-section of the dam, drawn to real elevations. The lake is on the left at its
@@ -107,7 +113,7 @@
   </section>
 
   <!-- ================= RIVER ================= -->
-  <section class="panel" id="panel-river">
+  <section class="panel" id="panel-river" role="tabpanel">
     <div class="card hero">
       <h3>Water moving down the river, gauge by gauge</h3>
       <p class="cap">Every active USGS gauge from Buford Dam to West Point, drawn on the real river. Pick a metric —
@@ -148,7 +154,7 @@
   </section>
 
   <!-- ================= QUALITY ================= -->
-  <section class="panel" id="panel-quality">
+  <section class="panel" id="panel-quality" role="tabpanel">
     <div class="card alert" id="qualityVerdict"><div class="skel">Assessing water quality…</div></div>
     <div class="card hero">
       <h3>The river, sampled — where the bacteria actually are</h3>
@@ -219,7 +225,7 @@
   </section>
 
   <!-- ================= WEATHER ================= -->
-  <section class="panel" id="panel-weather">
+  <section class="panel" id="panel-weather" role="tabpanel">
     <div class="card" id="nowWx"><div class="skel h">Loading conditions…</div></div>
     <div class="card">
       <h3>7-day outlook — LaGrange &amp; the lake</h3>
@@ -245,7 +251,7 @@
   </section>
 
   <!-- ================= CAMERAS ================= -->
-  <section class="panel" id="panel-cams">
+  <section class="panel" id="panel-cams" role="tabpanel">
     <div class="card">
       <h3>River cameras <span class="badge good">USGS</span></h3>
       <p class="cap">These are the real thing: cameras mounted at USGS streamgages and pointed directly at the water,
@@ -289,7 +295,7 @@
   </section>
 
   <!-- ================= RAIN CLIMATOLOGY ================= -->
-  <section class="panel" id="panel-rain">
+  <section class="panel" id="panel-rain" role="tabpanel">
     <div class="card alert" id="rainVerdict"><div class="skel">Loading rainfall climatology…</div></div>
     <div class="grid" id="rainKpis"></div>
     <div class="card">
