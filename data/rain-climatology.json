@@ -1,13 +1,13 @@
 {
- "generated": "2026-08-19",
+ "generated": "2026-08-20",
  "location": "LaGrange, Georgia",
  "latitude": 33.0362,
  "longitude": -85.0313,
  "source": "Open-Meteo archive (ERA5 reanalysis)",
  "wet_day_threshold_in": 0.01,
  "current_year": 2026,
- "data_through": "2026-08-19",
- "through_label": "Aug 19",
+ "data_through": "2026-08-20",
+ "through_label": "Aug 20",
  "baseline_label": "2015\u20132025",
  "months": [
   {
@@ -104,8 +104,8 @@
   {
    "month": 8,
    "name": "Aug",
-   "cur_days": 17,
-   "cur_in": 1.89,
+   "cur_days": 18,
+   "cur_in": 1.9,
    "avg_days": 20.2,
    "avg_in": 4.42,
    "min_days": 13,
@@ -170,13 +170,13 @@
  "ytd_by_year": [
   {
    "year": 2015,
-   "days": 110,
-   "inches": 27.17
+   "days": 111,
+   "inches": 27.3
   },
   {
    "year": 2016,
-   "days": 105,
-   "inches": 22.0
+   "days": 106,
+   "inches": 22.17
   },
   {
    "year": 2017,
@@ -185,28 +185,28 @@
   },
   {
    "year": 2018,
-   "days": 135,
-   "inches": 40.31
+   "days": 136,
+   "inches": 40.77
   },
   {
    "year": 2019,
-   "days": 113,
-   "inches": 31.03
+   "days": 114,
+   "inches": 31.05
   },
   {
    "year": 2020,
-   "days": 116,
-   "inches": 37.54
+   "days": 117,
+   "inches": 37.68
   },
   {
    "year": 2021,
-   "days": 117,
-   "inches": 40.05
+   "days": 118,
+   "inches": 40.32
   },
   {
    "year": 2022,
-   "days": 119,
-   "inches": 34.74
+   "days": 120,
+   "inches": 34.99
   },
   {
    "year": 2023,
@@ -220,26 +220,26 @@
   },
   {
    "year": 2025,
-   "days": 121,
-   "inches": 32.22
+   "days": 122,
+   "inches": 32.6
   },
   {
    "year": 2026,
-   "days": 130,
-   "inches": 36.89
+   "days": 131,
+   "inches": 36.9
   }
  ],
  "ytd": {
-  "days": 130,
-  "inches": 36.89,
-  "avg_days": 118.9,
-  "avg_inches": 35.04,
-  "min_days": 105,
-  "max_days": 135,
-  "min_inches": 22.0,
+  "days": 131,
+  "inches": 36.9,
+  "avg_days": 119.6,
+  "avg_inches": 35.21,
+  "min_days": 106,
+  "max_days": 136,
+  "min_inches": 22.17,
   "max_inches": 44.69,
-  "z_days": 1.19,
-  "z_inches": 0.29,
+  "z_days": 1.24,
+  "z_inches": 0.26,
   "rank_days": 4,
   "rank_inches": 6,
   "n_years": 12,
@@ -257,6 +257,6 @@
  },
  "driest_gap": {
   "name": "Aug",
-  "gap": -2.53
+  "gap": -2.52
  }
 }
