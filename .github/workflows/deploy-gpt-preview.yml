@@ -44,6 +44,8 @@ jobs:
             --exclude=.git \
             --exclude=.github \
             preview/ site/gpt-preview/
+          rm -rf site/gpt-preview/data
+          cp -a site/data site/gpt-preview/data
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
