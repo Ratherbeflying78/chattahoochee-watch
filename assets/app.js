@@ -1487,33 +1487,6 @@
     const atlTurb = get('02336000', P.turb), norTurb = get('02335000', P.turb);
     const fbDo = get('02337170', P.do), bufDo = get('02334430', P.do), fbPh = get('02337170', P.ph);
 
-    // verdict driven by bacteria
-    const ecVals = [atlEc, norEc].filter(Boolean).map(r => r.latest);
-    let cls = 'info', label = 'Bacteria data unavailable', head = 'No live bacteria estimate right now', body =
-      'The BacteriALERT sensors at Atlanta and Norcross are not reporting. Check turbidity and recent rainfall as a proxy.';
-    if (ecVals.length) {
-      const worst = Math.max.apply(null, ecVals);
-      if (worst >= ECOLI_THRESHOLD * 2) {
-        cls = 'bad'; label = 'Contact not advised';
-        head = `E. coli estimated at ${F(worst, 0)} cfu/100 mL — far above the 235 threshold`;
-        body = 'Bacteria are running well above the contact-recreation guideline, which typically follows heavy runoff. Avoid swimming, wading and any activity involving swallowing water.';
-      } else if (worst >= ECOLI_THRESHOLD) {
-        cls = 'bad'; label = 'Above safe threshold';
-        head = `E. coli estimated at ${F(worst, 0)} cfu/100 mL — above the 235 threshold`;
-        body = 'Bacteria exceed the single-sample guideline for contact recreation. Swimming and wading are discouraged until levels fall.';
-      } else if (worst >= ECOLI_THRESHOLD * 0.5) {
-        cls = 'warn'; label = 'Elevated';
-        head = `E. coli estimated at ${F(worst, 0)} cfu/100 mL — below the threshold but climbing`;
-        body = 'Levels are under the 235 guideline but elevated. Rain in the next day or two would likely push them over.';
-      } else {
-        cls = 'good'; label = 'Good';
-        head = `E. coli estimated at ${F(worst, 0)} cfu/100 mL — comfortably below the 235 threshold`;
-        body = 'Bacteria are low and conditions are favorable for contact recreation. Levels can spike within hours of heavy rain.';
-      }
-    }
-    $('#qualityVerdict').innerHTML = `<span class="badge ${cls}">${esc(label)}</span>
-      <h2>${esc(head)}</h2><p>${body}</p>`;
-
     const kpi = (lbl, v, unit, note, k) =>
       `<div class="kpi ${k || ''}"><div class="lbl">${esc(lbl)}</div>
        <div class="big">${v === null || v === undefined ? '—' : esc(v) + (unit ? ' ' + unit : '')}</div>
@@ -2392,7 +2365,7 @@
       return true;
     }).catch(e => {
       console.error(e);
-      ['#lakeHero', '#riverProfile', '#qualityVerdict'].forEach(s =>
+      ['#lakeHero', '#riverProfile'].forEach(s =>
         err(s, 'Could not reach the USGS water service. It may be briefly down — try Refresh.'));
       return false;
     });
