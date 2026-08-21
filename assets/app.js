@@ -2451,28 +2451,32 @@
     $('#updated').textContent = 'Refreshing…';
     const water = loadWater().then(() => {
       renderLake(); renderDam(); renderRiver(); renderQuality(); renderBasinRain(); drawRiver();
+      return true;
     }).catch(e => {
       console.error(e);
       ['#lakeHero', '#riverProfile', '#qualityVerdict'].forEach(s =>
         err(s, 'Could not reach the USGS water service. It may be briefly down — try Refresh.'));
+      return false;
     });
 
     // Geometry is only needed by the hand-drawn fallback maps now, but the
     // reach map still waits on it so the fallback path stays whole.
     const geo = loadGeo().then(() => { drawRiver(); drawReach(); })
-      .catch(e => { console.error(e); err('#riverMap', 'Map geometry could not be loaded.'); });
+      .then(() => true)
+      .catch(e => { console.error(e); err('#riverMap', 'Map geometry could not be loaded.'); return false; });
 
-    const weather = loadWeather().then(renderWeather)
-      .catch(e => { console.error(e); err('#nowWx', 'Weather services are unavailable.'); });
+    const weather = loadWeather().then(() => { renderWeather(); return true; })
+      .catch(e => { console.error(e); err('#nowWx', 'Weather services are unavailable.'); return false; });
 
-    const rain = (DATA.rain ? Promise.resolve() : loadRain()).then(renderRain)
-      .catch(e => { console.error(e); err('#rainVerdict', 'Rainfall climatology could not be loaded.'); });
+    const rain = (DATA.rain ? Promise.resolve() : loadRain()).then(() => { renderRain(); return true; })
+      .catch(e => { console.error(e); err('#rainVerdict', 'Rainfall climatology could not be loaded.'); return false; });
 
     const crk = (DATA.crk ? Promise.resolve() : loadCRK())
-      .then(() => { renderCRK(); drawReach(); })
-      .catch(e => { console.error(e); err('#crkBody', 'Riverkeeper sample data could not be loaded.'); });
+      .then(() => { renderCRK(); drawReach(); return true; })
+      .catch(e => { console.error(e); err('#crkBody', 'Riverkeeper sample data could not be loaded.'); return false; });
 
-    return Promise.all([water, weather, rain, geo, crk]).then(() => setUpdated(true));
+    return Promise.all([water, weather, rain, geo, crk])
+      .then(results => setUpdated(results.every(Boolean)));
   }
 
   // metric selector for the river map

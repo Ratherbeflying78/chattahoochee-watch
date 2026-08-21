@@ -57,6 +57,21 @@ jobs:
         # which renders the page with cards that never fill in.
         run: sed -i "s/?v=dev/?v=${GITHUB_SHA::12}/g" index.html
 
+      - name: Add GPT preview below production root
+        uses: actions/checkout@v4
+        with:
+          ref: ratherbeflying78-gpt-dashboard-redesign
+          path: preview
+
+      - name: Stage GPT preview
+        run: |
+          mkdir -p gpt-preview
+          rsync -a --delete \
+            --exclude=.git \
+            --exclude=.github \
+            preview/ gpt-preview/
+          rm -rf preview
+
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
