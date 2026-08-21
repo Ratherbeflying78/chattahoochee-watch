@@ -1,13 +1,13 @@
 {
- "generated": "2026-08-20",
+ "generated": "2026-08-21",
  "location": "LaGrange, Georgia",
  "latitude": 33.0362,
  "longitude": -85.0313,
  "source": "Open-Meteo archive (ERA5 reanalysis)",
  "wet_day_threshold_in": 0.01,
  "current_year": 2026,
- "data_through": "2026-08-20",
- "through_label": "Aug 20",
+ "data_through": "2026-08-21",
+ "through_label": "Aug 21",
  "baseline_label": "2015\u20132025",
  "months": [
   {
@@ -104,8 +104,8 @@
   {
    "month": 8,
    "name": "Aug",
-   "cur_days": 18,
-   "cur_in": 1.92,
+   "cur_days": 19,
+   "cur_in": 2.3,
    "avg_days": 20.2,
    "avg_in": 4.42,
    "min_days": 13,
@@ -170,13 +170,13 @@
  "ytd_by_year": [
   {
    "year": 2015,
-   "days": 111,
-   "inches": 27.3
+   "days": 112,
+   "inches": 27.35
   },
   {
    "year": 2016,
-   "days": 106,
-   "inches": 22.17
+   "days": 107,
+   "inches": 22.31
   },
   {
    "year": 2017,
@@ -185,8 +185,8 @@
   },
   {
    "year": 2018,
-   "days": 136,
-   "inches": 40.77
+   "days": 137,
+   "inches": 41.08
   },
   {
    "year": 2019,
@@ -195,18 +195,18 @@
   },
   {
    "year": 2020,
-   "days": 117,
-   "inches": 37.68
+   "days": 118,
+   "inches": 38.33
   },
   {
    "year": 2021,
-   "days": 118,
-   "inches": 40.32
+   "days": 119,
+   "inches": 40.5
   },
   {
    "year": 2022,
-   "days": 120,
-   "inches": 34.99
+   "days": 121,
+   "inches": 35.33
   },
   {
    "year": 2023,
@@ -215,32 +215,32 @@
   },
   {
    "year": 2024,
-   "days": 110,
-   "inches": 33.91
+   "days": 111,
+   "inches": 33.98
   },
   {
    "year": 2025,
-   "days": 122,
-   "inches": 32.6
+   "days": 123,
+   "inches": 33.27
   },
   {
    "year": 2026,
-   "days": 131,
-   "inches": 36.91
+   "days": 132,
+   "inches": 37.3
   }
  ],
  "ytd": {
-  "days": 131,
-  "inches": 36.91,
-  "avg_days": 119.6,
-  "avg_inches": 35.21,
-  "min_days": 106,
-  "max_days": 136,
-  "min_inches": 22.17,
+  "days": 132,
+  "inches": 37.3,
+  "avg_days": 120.4,
+  "avg_inches": 35.43,
+  "min_days": 107,
+  "max_days": 137,
+  "min_inches": 22.31,
   "max_inches": 44.69,
-  "z_days": 1.24,
-  "z_inches": 0.26,
-  "rank_days": 4,
+  "z_days": 1.29,
+  "z_inches": 0.29,
+  "rank_days": 2,
   "rank_inches": 6,
   "n_years": 12,
   "verdict_days": "Notably wetter than normal",
@@ -256,7 +256,7 @@
   "gap": 5.77
  },
  "driest_gap": {
-  "name": "Aug",
-  "gap": -2.5
+  "name": "Apr",
+  "gap": -2.34
  }
 }
