@@ -70,7 +70,9 @@ jobs:
             --exclude=.git \
             --exclude=.github \
             preview/ gpt-preview/
-          rm -rf preview
+            rm -rf gpt-preview/data
+            cp -a data gpt-preview/data
+            rm -rf preview
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
