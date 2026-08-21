@@ -2279,6 +2279,19 @@
   const NIMS_LIST = 'https://api.waterdata.usgs.gov/nims/listFiles?limit=1&recent=true&camId=';
   const NIMS_IMG = 'https://usgs-nims-images.s3.amazonaws.com/720/';
 
+  // Public YouTube players supplied by Atlanta Rowing Club Boathouse. Their
+  // official Dock Webcam page confirms that the view is used for river conditions.
+  const LIVESTREAMS = [
+    { id: 'azalea', name: 'Chattahoochee River at Azalea Park Dock',
+      loc: 'Roswell — Azalea Park / Chattahoochee River National Recreation Area',
+      video: '0b1j6e0g31c', source: 'Public YouTube stream',
+      page: 'https://www.youtube.com/watch?v=0b1j6e0g31c' },
+    { id: 'arc', name: 'Atlanta Rowing Club Dock',
+      loc: 'Roswell — Chattahoochee River dock near Columns Drive',
+      video: 'IYGdtuBbt8U', source: 'Atlanta Rowing Club webcam',
+      page: 'https://www.atlantarow.org/page/show/3832545-webcam' }
+  ];
+
   // Filenames look like CAM___2026-08-17T10-45-04Z.jpg
   function nimsDate(fn) {
     const m = /___(\d{4}-\d{2}-\d{2})T(\d{2})-(\d{2})-(\d{2})Z/.exec(fn || '');
@@ -2327,6 +2340,26 @@
     const grid = $('#camGrid');
     if (grid.dataset.built) return;
     grid.dataset.built = '1';
+
+    const streams = $('#liveStreamGrid');
+    if (streams) {
+      streams.innerHTML = LIVESTREAMS.map(c => `
+        <div class="cam streamcam">
+          <figure>
+            <iframe src="https://www.youtube.com/embed/${esc(c.video)}?rel=0"
+              title="${esc(c.name)} live stream" loading="lazy"
+              referrerpolicy="strict-origin-when-cross-origin"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen></iframe>
+          </figure>
+          <div class="meta">
+            <div class="cname">${esc(c.name)}</div>
+            <div class="cloc">${esc(c.loc)}</div>
+            <span class="ctag good">Live video</span>
+            <a class="clink" href="${esc(c.page)}" target="_blank" rel="noopener">${esc(c.source)} ↗</a>
+          </div>
+        </div>`).join('');
+    }
 
     const rgrid = $('#riverCamGrid');
     if (rgrid) {

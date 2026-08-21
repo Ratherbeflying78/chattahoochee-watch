@@ -247,6 +247,13 @@
   <!-- ================= CAMERAS ================= -->
   <section class="panel" id="panel-cams">
     <div class="card">
+      <h3>Live river streams <span class="badge info">Public webcams</span></h3>
+      <p class="cap">Two publicly embeddable views of the Chattahoochee in Roswell. These are operator-run
+        video streams rather than measurements, so availability and playback are controlled by their host.</p>
+      <div class="camgrid" id="liveStreamGrid"></div>
+    </div>
+
+    <div class="card">
       <h3>River cameras <span class="badge good">USGS</span></h3>
       <p class="cap">These are the real thing: cameras mounted at USGS streamgages and pointed directly at the water,
         from the USGS <a href="https://apps.usgs.gov/hivis/" target="_blank" rel="noopener">National Imagery Management System</a>.
@@ -276,6 +283,8 @@
         <li><b>No public dam cameras.</b> Neither the Corps of Engineers at West Point Dam nor Buford Dam publishes
           an embeddable live camera feed.</li>
         <li><b>No National Park Service cams.</b> The Chattahoochee River National Recreation Area does not run a public webcam.</li>
+        <li><b>Roswell live streams.</b> The public video players above are hosted by Atlanta Rowing Club Boathouse
+          on YouTube; they show river conditions but are not official gauges or advisories.</li>
         <li><b>Video streams are locked.</b> GDOT does publish HLS video for its cameras, but the streams require
           authentication, so only the still images can be shown here.</li>
         <li><b>Daylight only.</b> USGS river cameras shoot during daylight hours, so overnight the most recent frame
@@ -324,7 +333,8 @@
     <p><b>Sources.</b> Water levels, streamflow and water quality: <a href="https://waterservices.usgs.gov/" target="_blank" rel="noopener">USGS National Water Information System</a> (instantaneous values, updated every 15–60 minutes).
       Forecast: <a href="https://www.weather.gov/ffc/" target="_blank" rel="noopener">NOAA / National Weather Service Peachtree City</a>.
       Precipitation history and forecast: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> (ERA5 reanalysis + operational models).
-      Camera stills: <a href="https://511ga.org/map" target="_blank" rel="noopener">Georgia DOT / 511GA</a> and <a href="https://apps.usgs.gov/hivis/" target="_blank" rel="noopener">USGS HIVIS</a>.
+      Camera stills: <a href="https://511ga.org/map" target="_blank" rel="noopener">Georgia DOT / 511GA</a> and <a href="https://apps.usgs.gov/hivis/" target="_blank" rel="noopener">USGS HIVIS</a>;
+      public river video streams: <a href="https://www.youtube.com/@AtlantarowOrg" target="_blank" rel="noopener">Atlanta Rowing Club Boathouse</a> via YouTube.
       Laboratory bacteria sampling: <a href="https://chattahoochee.org/" target="_blank" rel="noopener">Chattahoochee Riverkeeper</a> — <a href="https://nww.chattahoochee.org/" target="_blank" rel="noopener">Neighborhood Water Watch</a> and <a href="https://www.theswimguide.org/affiliates/chattahoochee-riverkeeper" target="_blank" rel="noopener">Swim Guide</a>.
       River and lake map geometry: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors, ODbL.</p>
     <p><b>Caveats.</b> These are provisional, unreviewed sensor readings and may contain errors or gaps. The USACE guide curve
