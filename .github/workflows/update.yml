@@ -46,7 +46,15 @@ jobs:
           if [ -n "$(git status --porcelain data)" ]; then
             git add data
             git commit -m "chore: refresh water and rainfall data [skip ci]"
-            git push
+            for attempt in 1 2 3; do
+              if git push; then
+                break
+              fi
+              if [ "$attempt" -eq 3 ]; then
+                exit 1
+              fi
+              git pull --rebase origin main
+            done
           else
             echo "No data changes to commit."
           fi
