@@ -199,6 +199,8 @@ svg.chart{width:100%;height:auto;display:block;overflow:visible}
 .cam .clink{font-size:11px;margin-left:8px;white-space:nowrap}
 .rivercam figure{aspect-ratio:4/3;background:#070f1c}
 .rivercam img{object-fit:contain}
+.streamcam figure{aspect-ratio:16/9;background:#070f1c}
+.streamcam iframe{width:100%;height:100%;border:0;display:block}
 .camage{font-weight:500;font-size:11px;color:var(--dim)}
 .camage.stale{color:#fbbf24}
 
@@ -216,41 +218,8 @@ ul.take b{color:var(--ink)}
 .foot p{margin:0 0 10px}
 .tiny{font-size:11.5px;color:#55668a}
 
-/* ---- Chattahoochee Riverkeeper (Neighborhood Water Watch + Swim Guide) ---- */
-#crkBar{margin-bottom:14px}
-.crkhead{margin:18px 0 9px;font-size:12px;text-transform:uppercase;letter-spacing:.7px;
-  color:var(--dim);font-weight:700}
-.crkhead:first-child{margin-top:2px}
-table.crk td,table.crk th{padding:7px 10px}
-table.crk td:first-child{white-space:normal;max-width:34ch;font-weight:600}
-table.crk .sub{display:block;font-weight:400;color:var(--dim2);font-size:11px;
-  letter-spacing:0;text-transform:none;white-space:normal}
-table.crk td.num{font-variant-numeric:tabular-nums}
-table.crk td.good{color:var(--good)} table.crk td.warn{color:var(--warn)}
-table.crk td.bad{color:var(--bad)}
-table.crk td.spk{padding:4px 10px;width:1%}
 .spark{display:block}
 .spark rect{fill-opacity:.85}
-
-.swimgrid{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(215px,1fr))}
-.swimcard{background:#0e1a2f;border:1px solid #1b2942;border-left:3px solid var(--dim2);
-  border-radius:9px;padding:10px 12px}
-.swimcard.good{border-left-color:var(--good)}
-.swimcard.warn{border-left-color:var(--warn)}
-.swimcard.bad{border-left-color:var(--bad)}
-.swimtop{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
-.swimname{font-size:13px;font-weight:600;line-height:1.35;margin-bottom:5px}
-.swimname a{color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--dim2)}
-.swimname a:hover{color:var(--acc)}
-.swimval{font-size:21px;font-weight:800;letter-spacing:-.4px;font-variant-numeric:tabular-nums}
-.swimval .unit{font-size:11px;font-weight:600;color:var(--dim);letter-spacing:0;margin-left:4px}
-.swimval.good{color:var(--good)} .swimval.warn{color:var(--warn)} .swimval.bad{color:var(--bad)}
-.swimcard .ctag{display:inline-block;font-size:10.5px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.5px;padding:2px 7px;border-radius:999px;
-  background:#12304f;color:#7dd3fc;border:1px solid #1d4b78}
-.swimcard .ctag.good{background:#123a2a;color:#6ee7a8;border-color:#1d6b48}
-.swimcard .ctag.warn{background:#3b2f10;color:#fcd77f;border-color:#7a6120}
-.swimcard .ctag.bad{background:#3d1a1e;color:#fca5a5;border-color:#7d2f36}
 
 /* ---- Franklin-to-West-Point reach map ---- */
 .reachlayout{display:grid;grid-template-columns:minmax(300px,1.05fr) minmax(260px,1fr);gap:16px;align-items:start}

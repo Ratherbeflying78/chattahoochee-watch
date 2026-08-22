@@ -155,13 +155,7 @@
 
   <!-- ================= QUALITY ================= -->
   <section class="panel" id="panel-quality" role="tabpanel">
-    <div class="card alert" id="qualityVerdict"><div class="skel">Assessing water quality…</div></div>
     <div class="card hero">
-      <h3>The river, sampled — where the bacteria actually are</h3>
-      <p class="cap">Chattahoochee Riverkeeper's sampling sites that sit on the lake or the river itself —
-        feeder creeks are left out — plotted on the same river drawing as the River water flow tab and colored
-        by the most recent lab-cultured E. coli result. Click any site or list entry for its history.
-        Everything further down this page is context for what you see here.</p>
       <div class="metricbar" id="reachBar">
         <button class="mbtn active" data-scope="reach" type="button">West Point Lake &amp; Franklin</button>
         <button class="mbtn" data-scope="corridor" type="button">Whole corridor</button>
@@ -186,20 +180,6 @@
     </div>
     <p class="seclabel">Supporting context — live sensors upstream</p>
     <div class="grid" id="qualityKpis"></div>
-    <div class="card">
-      <h3>The same samples as tables</h3>
-      <p class="cap">Riverkeeper's <b>Neighborhood Water Watch</b> volunteers collect samples every week and culture
-        them in a lab. These are measured counts, not the modelled estimates below — the strongest bacteria data
-        available for this river. Their summer <b>Swim Guide</b> applies the same tests to popular access points.</p>
-      <div class="metricbar" id="crkBar">
-        <button class="mbtn active" data-crk="swim" type="button">Swim Guide</button>
-        <button class="mbtn" data-crk="wpl" type="button">West Point Lake</button>
-        <button class="mbtn" data-crk="worst" type="button">Worst this week</button>
-        <button class="mbtn" data-crk="all" type="button">All sites</button>
-      </div>
-      <div id="crkBody"><div class="skel">Loading Riverkeeper samples…</div></div>
-      <p class="cap" id="crkNote"></p>
-    </div>
     <div class="card">
       <h3>Bacteria — E. coli at Atlanta &amp; Norcross</h3>
       <p class="cap">USGS BacteriALERT estimates bacteria continuously from turbidity and flow. The red line is
@@ -253,6 +233,13 @@
   <!-- ================= CAMERAS ================= -->
   <section class="panel" id="panel-cams" role="tabpanel">
     <div class="card">
+      <h3>Live river streams <span class="badge info">Public webcams</span></h3>
+      <p class="cap">Two publicly embeddable views of the Chattahoochee in Roswell. These are operator-run
+        video streams rather than measurements, so availability and playback are controlled by their host.</p>
+      <div class="camgrid" id="liveStreamGrid"></div>
+    </div>
+
+    <div class="card">
       <h3>River cameras <span class="badge good">USGS</span></h3>
       <p class="cap">These are the real thing: cameras mounted at USGS streamgages and pointed directly at the water,
         from the USGS <a href="https://apps.usgs.gov/hivis/" target="_blank" rel="noopener">National Imagery Management System</a>.
@@ -282,6 +269,8 @@
         <li><b>No public dam cameras.</b> Neither the Corps of Engineers at West Point Dam nor Buford Dam publishes
           an embeddable live camera feed.</li>
         <li><b>No National Park Service cams.</b> The Chattahoochee River National Recreation Area does not run a public webcam.</li>
+        <li><b>Roswell live streams.</b> The public video players above are hosted by Atlanta Rowing Club Boathouse
+          on YouTube; they show river conditions but are not official gauges or advisories.</li>
         <li><b>Video streams are locked.</b> GDOT does publish HLS video for its cameras, but the streams require
           authentication, so only the still images can be shown here.</li>
         <li><b>Daylight only.</b> USGS river cameras shoot during daylight hours, so overnight the most recent frame
@@ -330,7 +319,8 @@
     <p><b>Sources.</b> Water levels, streamflow and water quality: <a href="https://waterservices.usgs.gov/" target="_blank" rel="noopener">USGS National Water Information System</a> (instantaneous values, updated every 15–60 minutes).
       Forecast: <a href="https://www.weather.gov/ffc/" target="_blank" rel="noopener">NOAA / National Weather Service Peachtree City</a>.
       Precipitation history and forecast: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> (ERA5 reanalysis + operational models).
-      Camera stills: <a href="https://511ga.org/map" target="_blank" rel="noopener">Georgia DOT / 511GA</a> and <a href="https://apps.usgs.gov/hivis/" target="_blank" rel="noopener">USGS HIVIS</a>.
+      Camera stills: <a href="https://511ga.org/map" target="_blank" rel="noopener">Georgia DOT / 511GA</a> and <a href="https://apps.usgs.gov/hivis/" target="_blank" rel="noopener">USGS HIVIS</a>;
+      public river video streams: <a href="https://www.youtube.com/@AtlantarowOrg" target="_blank" rel="noopener">Atlanta Rowing Club Boathouse</a> via YouTube.
       Laboratory bacteria sampling: <a href="https://chattahoochee.org/" target="_blank" rel="noopener">Chattahoochee Riverkeeper</a> — <a href="https://nww.chattahoochee.org/" target="_blank" rel="noopener">Neighborhood Water Watch</a> and <a href="https://www.theswimguide.org/affiliates/chattahoochee-riverkeeper" target="_blank" rel="noopener">Swim Guide</a>.
       River and lake map geometry: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors, ODbL.</p>
     <p><b>Caveats.</b> These are provisional, unreviewed sensor readings and may contain errors or gaps. The USACE guide curve

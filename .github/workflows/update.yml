@@ -46,7 +46,15 @@ jobs:
           if [ -n "$(git status --porcelain data)" ]; then
             git add data
             git commit -m "chore: refresh water and rainfall data [skip ci]"
-            git push
+            for attempt in 1 2 3; do
+              if git push; then
+                break
+              fi
+              if [ "$attempt" -eq 3 ]; then
+                exit 1
+              fi
+              git pull --rebase origin main
+            done
           else
             echo "No data changes to commit."
           fi
@@ -56,6 +64,23 @@ jobs:
         # string a browser can pair a fresh index.html with a stale app.js,
         # which renders the page with cards that never fill in.
         run: sed -i "s/?v=dev/?v=${GITHUB_SHA::12}/g" index.html
+
+      - name: Add GPT preview below production root
+        uses: actions/checkout@v4
+        with:
+          ref: ratherbeflying78-gpt-dashboard-redesign
+          path: preview
+
+      - name: Stage GPT preview
+        run: |
+          mkdir -p gpt-preview
+          rsync -a --delete \
+            --exclude=.git \
+            --exclude=.github \
+            preview/ gpt-preview/
+            rm -rf gpt-preview/data
+            cp -a data gpt-preview/data
+            rm -rf preview
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

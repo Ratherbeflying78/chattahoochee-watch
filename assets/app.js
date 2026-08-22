@@ -1487,33 +1487,6 @@
     const atlTurb = get('02336000', P.turb), norTurb = get('02335000', P.turb);
     const fbDo = get('02337170', P.do), bufDo = get('02334430', P.do), fbPh = get('02337170', P.ph);
 
-    // verdict driven by bacteria
-    const ecVals = [atlEc, norEc].filter(Boolean).map(r => r.latest);
-    let cls = 'info', label = 'Bacteria data unavailable', head = 'No live bacteria estimate right now', body =
-      'The BacteriALERT sensors at Atlanta and Norcross are not reporting. Check turbidity and recent rainfall as a proxy.';
-    if (ecVals.length) {
-      const worst = Math.max.apply(null, ecVals);
-      if (worst >= ECOLI_THRESHOLD * 2) {
-        cls = 'bad'; label = 'Contact not advised';
-        head = `E. coli estimated at ${F(worst, 0)} cfu/100 mL — far above the 235 threshold`;
-        body = 'Bacteria are running well above the contact-recreation guideline, which typically follows heavy runoff. Avoid swimming, wading and any activity involving swallowing water.';
-      } else if (worst >= ECOLI_THRESHOLD) {
-        cls = 'bad'; label = 'Above safe threshold';
-        head = `E. coli estimated at ${F(worst, 0)} cfu/100 mL — above the 235 threshold`;
-        body = 'Bacteria exceed the single-sample guideline for contact recreation. Swimming and wading are discouraged until levels fall.';
-      } else if (worst >= ECOLI_THRESHOLD * 0.5) {
-        cls = 'warn'; label = 'Elevated';
-        head = `E. coli estimated at ${F(worst, 0)} cfu/100 mL — below the threshold but climbing`;
-        body = 'Levels are under the 235 guideline but elevated. Rain in the next day or two would likely push them over.';
-      } else {
-        cls = 'good'; label = 'Good';
-        head = `E. coli estimated at ${F(worst, 0)} cfu/100 mL — comfortably below the 235 threshold`;
-        body = 'Bacteria are low and conditions are favorable for contact recreation. Levels can spike within hours of heavy rain.';
-      }
-    }
-    $('#qualityVerdict').innerHTML = `<span class="badge ${cls}">${esc(label)}</span>
-      <h2>${esc(head)}</h2><p>${body}</p>`;
-
     const kpi = (lbl, v, unit, note, k) =>
       `<div class="kpi ${k || ''}"><div class="lbl">${esc(lbl)}</div>
        <div class="big">${v === null || v === undefined ? '—' : esc(v) + (unit ? ' ' + unit : '')}</div>
@@ -1580,10 +1553,6 @@
      the turbidity-and-flow model behind USGS BacteriALERT. Resolved twice a
      day by scripts/build_crk.py into data/crk.json.
      ===================================================================== */
-  let crkView = 'swim';
-
-  // West Point Lake proper, for the "my water" view.
-  const WPL_BOX = { s: 32.83, n: 33.20, w: -85.35, e: -85.02 };
   const CRK_FLOOR = 50;   // CRK reports "<1 detected" as 50 MPN/100 mL
 
   function loadCRK() {
@@ -1613,97 +1582,6 @@
   function crkLatest(st) {
     const rs = (st.readings || []).filter(r => r.ec !== null && isFinite(r.ec));
     return rs.length ? rs[rs.length - 1] : null;
-  }
-
-  function crkRow(st) {
-    const last = crkLatest(st);
-    if (!last) return '';
-    const j = judge(P.ecoli, last.ec) || { cls: 'dim', note: '' };
-    const floor = last.ec <= CRK_FLOOR;
-    return `<tr>
-      <td>${esc(st.name)}${st.huc ? `<span class="sub">${esc(st.huc)}</span>` : ''}</td>
-      <td class="num ${j.cls}"><b>${floor ? '&lt;' + CRK_FLOOR : F(last.ec, 0)}</b></td>
-      <td class="spk">${crkSpark(st.readings)}</td>
-      <td class="num dim">${last.tb !== null ? F(last.tb, 1) : '—'}</td>
-      <td class="dim">${esc(last.d)}</td>
-    </tr>`;
-  }
-
-  function crkTable(rows, caption) {
-    if (!rows.length) return '<p class="dim">No samples available for this view.</p>';
-    return `<div class="tablewrap"><table class="crk">
-      <thead><tr><th>Sampling site</th><th class="num">E. coli<span class="sub">MPN/100 mL</span></th>
-        <th>Recent samples</th><th class="num">Turbidity<span class="sub">NTU</span></th><th>Sampled</th></tr></thead>
-      <tbody>${rows.join('')}</tbody></table></div>
-      ${caption ? `<p class="cap">${caption}</p>` : ''}`;
-  }
-
-  function renderCRK() {
-    const C = DATA.crk, box = $('#crkBody');
-    if (!box) return;
-    if (!C) { err('#crkBody', 'Riverkeeper sample data could not be loaded.'); return; }
-    const sites = C.nww || [];
-
-    if (crkView === 'swim') {
-      const sg = (C.swimguide || []).filter(s => s.ec !== null);
-      if (!sg.length) { box.innerHTML = '<p class="dim">The Swim Guide layer is empty — it runs Memorial Day to Labor Day.</p>'; }
-      else {
-        const byRegion = {};
-        sg.forEach(s => (byRegion[s.region] || (byRegion[s.region] = [])).push(s));
-        box.innerHTML = Object.keys(byRegion).map(rg => `
-          <h4 class="crkhead">${esc(rg)}</h4>
-          <div class="swimgrid">${byRegion[rg].map(s => {
-            const j = judge(P.ecoli, s.ec) || { cls: 'dim', note: '' };
-            const label = s.ec >= ECOLI_THRESHOLD ? 'Not recommended'
-              : s.ec >= 126 ? 'Marginal' : 'Passing';
-            const nm = esc(s.name);
-            return `<div class="swimcard ${j.cls}">
-              <div class="swimtop"><span class="ctag ${j.cls}">${label}</span>
-                <span class="dim tiny">${esc(s.date || '')}</span></div>
-              <div class="swimname">${s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${nm}</a>` : nm}</div>
-              <div class="swimval ${j.cls}">${s.ec <= CRK_FLOOR ? '&lt;' + CRK_FLOOR : F(s.ec, 0)}
-                <span class="unit">MPN/100 mL</span></div>
-              <div class="tiny dim">${esc(j.note)}</div>
-            </div>`;
-          }).join('')}</div>`).join('');
-      }
-      $('#crkNote').innerHTML = `Riverkeeper samples these access points weekly through the summer and posts the
-        result to <a href="https://www.theswimguide.org/affiliates/chattahoochee-riverkeeper" target="_blank"
-        rel="noopener">Swim Guide</a>. <b>Passing</b> is under 126 MPN/100 mL, <b>marginal</b> is 126–234, and
-        <b>not recommended</b> is 235 or above. A result describes the water on the day it was collected —
-        bacteria rise sharply for a day or two after heavy rain.`;
-      return;
-    }
-
-    if (crkView === 'wpl') {
-      const wpl = sites.filter(s => ON_WATER_RE.test(s.name) &&
-        ((s.lat >= WPL_BOX.s && s.lat <= WPL_BOX.n && s.lon >= WPL_BOX.w && s.lon <= WPL_BOX.e) ||
-          /west point/i.test(s.name)));
-      wpl.sort((a, b) => (crkLatest(b) ? crkLatest(b).ec : -1) - (crkLatest(a) ? crkLatest(a).ec : -1));
-      box.innerHTML = crkTable(wpl.map(crkRow).filter(Boolean));
-      $('#crkNote').innerHTML = `Riverkeeper's sampling sites on West Point Lake and the river running into and out
-        of it, worst first — the feeder creeks they also sample are left out here. Coves hold bacteria far longer
-        than open water, so a hot reading at one dock says little about the main lake. <b>&lt;50</b> means nothing
-        was detected.`;
-      return;
-    }
-
-    const rows = sites.map(s => ({ s: s, last: crkLatest(s) })).filter(x => x.last);
-    if (crkView === 'worst') {
-      rows.sort((a, b) => b.last.ec - a.last.ec);
-      const top = rows.slice(0, 20);
-      box.innerHTML = crkTable(top.map(x => crkRow(x.s)));
-      $('#crkNote').innerHTML = `The twenty dirtiest samples across the basin from the most recent round.
-        These are mostly small urban creeks, not the river itself — they are where Riverkeeper hunts sewage
-        leaks and failing septic systems. The dashed line on each sparkline is the 235 limit.`;
-      return;
-    }
-
-    rows.sort((a, b) => a.s.name.localeCompare(b.s.name));
-    box.innerHTML = crkTable(rows.map(x => crkRow(x.s)));
-    $('#crkNote').innerHTML = `All ${rows.length} Riverkeeper sites sampled in the corridor over the last two
-      months, from the Helen headwaters to Columbus. Samples are usually collected on Wednesdays and cultured
-      for 24 hours, so results post mid-week.`;
   }
 
   /* =====================================================================
@@ -2279,6 +2157,19 @@
   const NIMS_LIST = 'https://api.waterdata.usgs.gov/nims/listFiles?limit=1&recent=true&camId=';
   const NIMS_IMG = 'https://usgs-nims-images.s3.amazonaws.com/720/';
 
+  // Public YouTube players supplied by Atlanta Rowing Club Boathouse. Their
+  // official Dock Webcam page confirms that the view is used for river conditions.
+  const LIVESTREAMS = [
+    { id: 'azalea', name: 'Chattahoochee River at Azalea Park Dock',
+      loc: 'Roswell — Azalea Park / Chattahoochee River National Recreation Area',
+      video: '0b1j6e0g31c', source: 'Public YouTube stream',
+      page: 'https://www.youtube.com/watch?v=0b1j6e0g31c' },
+    { id: 'arc', name: 'Atlanta Rowing Club Dock',
+      loc: 'Roswell — Chattahoochee River dock near Columns Drive',
+      video: 'IYGdtuBbt8U', source: 'Atlanta Rowing Club webcam',
+      page: 'https://www.atlantarow.org/page/show/3832545-webcam' }
+  ];
+
   // Filenames look like CAM___2026-08-17T10-45-04Z.jpg
   function nimsDate(fn) {
     const m = /___(\d{4}-\d{2}-\d{2})T(\d{2})-(\d{2})-(\d{2})Z/.exec(fn || '');
@@ -2327,6 +2218,26 @@
     const grid = $('#camGrid');
     if (grid.dataset.built) return;
     grid.dataset.built = '1';
+
+    const streams = $('#liveStreamGrid');
+    if (streams) {
+      streams.innerHTML = LIVESTREAMS.map(c => `
+        <div class="cam streamcam">
+          <figure>
+            <iframe src="https://www.youtube.com/embed/${esc(c.video)}?rel=0"
+              title="${esc(c.name)} live stream" loading="lazy"
+              referrerpolicy="strict-origin-when-cross-origin"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen></iframe>
+          </figure>
+          <div class="meta">
+            <div class="cname">${esc(c.name)}</div>
+            <div class="cloc">${esc(c.loc)}</div>
+            <span class="ctag good">Live video</span>
+            <a class="clink" href="${esc(c.page)}" target="_blank" rel="noopener">${esc(c.source)} ↗</a>
+          </div>
+        </div>`).join('');
+    }
 
     const rgrid = $('#riverCamGrid');
     if (rgrid) {
@@ -2451,28 +2362,32 @@
     $('#updated').textContent = 'Refreshing…';
     const water = loadWater().then(() => {
       renderLake(); renderDam(); renderRiver(); renderQuality(); renderBasinRain(); drawRiver();
+      return true;
     }).catch(e => {
       console.error(e);
-      ['#lakeHero', '#riverProfile', '#qualityVerdict'].forEach(s =>
+      ['#lakeHero', '#riverProfile'].forEach(s =>
         err(s, 'Could not reach the USGS water service. It may be briefly down — try Refresh.'));
+      return false;
     });
 
     // Geometry is only needed by the hand-drawn fallback maps now, but the
     // reach map still waits on it so the fallback path stays whole.
     const geo = loadGeo().then(() => { drawRiver(); drawReach(); })
-      .catch(e => { console.error(e); err('#riverMap', 'Map geometry could not be loaded.'); });
+      .then(() => true)
+      .catch(e => { console.error(e); err('#riverMap', 'Map geometry could not be loaded.'); return false; });
 
-    const weather = loadWeather().then(renderWeather)
-      .catch(e => { console.error(e); err('#nowWx', 'Weather services are unavailable.'); });
+    const weather = loadWeather().then(() => { renderWeather(); return true; })
+      .catch(e => { console.error(e); err('#nowWx', 'Weather services are unavailable.'); return false; });
 
-    const rain = (DATA.rain ? Promise.resolve() : loadRain()).then(renderRain)
-      .catch(e => { console.error(e); err('#rainVerdict', 'Rainfall climatology could not be loaded.'); });
+    const rain = (DATA.rain ? Promise.resolve() : loadRain()).then(() => { renderRain(); return true; })
+      .catch(e => { console.error(e); err('#rainVerdict', 'Rainfall climatology could not be loaded.'); return false; });
 
     const crk = (DATA.crk ? Promise.resolve() : loadCRK())
-      .then(() => { renderCRK(); drawReach(); })
-      .catch(e => { console.error(e); err('#crkBody', 'Riverkeeper sample data could not be loaded.'); });
+      .then(() => { drawReach(); return true; })
+      .catch(e => { console.error(e); err('#reachMap', 'Riverkeeper sample data could not be loaded.'); return false; });
 
-    return Promise.all([water, weather, rain, geo, crk]).then(() => setUpdated(true));
+    return Promise.all([water, weather, rain, geo, crk])
+      .then(results => setUpdated(results.every(Boolean)));
   }
 
   // metric selector for the river map
@@ -2505,13 +2420,6 @@
     // The illustrated reach only covers Franklin to the dam.
     if (REACH_VIEW === 'svg') { REACH_SCOPE = 'reach'; if (RMAP) RMAP._fitted = false; }
     drawReach();
-  }));
-
-  $$('#crkBar .mbtn').forEach(b => b.addEventListener('click', () => {
-    $$('#crkBar .mbtn').forEach(o => o.classList.remove('active'));
-    b.classList.add('active');
-    crkView = b.dataset.crk;
-    renderCRK();
   }));
 
   // tabs

@@ -185,6 +185,36 @@ def load_swimguide():
     return out
 
 
+def reconcile_swimguide(sites, swimguide):
+    """Append a newer Swim Guide result to its matching NWW station history."""
+    updated = 0
+    for site in sites:
+        readings = site.get('readings') or []
+        latest = max((r.get('d', '') for r in readings), default='')
+        matches = [
+            s for s in swimguide
+            if s['date'] > latest
+            and s['lat'] is not None and s['lon'] is not None
+            and abs(s['lat'] - site['lat']) < 0.001
+            and abs(s['lon'] - site['lon']) < 0.001
+        ]
+        if not matches:
+            continue
+        sample = max(matches, key=lambda s: s['date'])
+        readings.append({
+            'd': sample['date'],
+            'ec': sample['ec'],
+            'tb': None,
+            'sc': None,
+            'rn': None,
+        })
+        readings.sort(key=lambda r: r['d'])
+        site['readings'] = readings[-READINGS:]
+        site['last'] = sample['date']
+        updated += 1
+    print(f'  reconciled {updated} newer Swim Guide results into NWW histories')
+
+
 def main():
     sites = pick_sites()
     if not sites:
@@ -201,11 +231,13 @@ def main():
             print(f'  {i}/{len(sites)}')
         time.sleep(REQ_PAUSE)
 
+    swimguide = load_swimguide()
+    reconcile_swimguide(kept, swimguide)
     doc = {
         'generated': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
         'source': 'Chattahoochee Riverkeeper — Neighborhood Water Watch & Swim Guide',
         'nww': kept,
-        'swimguide': load_swimguide(),
+        'swimguide': swimguide,
     }
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, 'w', encoding='utf-8') as fh:
