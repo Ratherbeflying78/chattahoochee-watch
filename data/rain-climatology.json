@@ -105,7 +105,7 @@
    "month": 8,
    "name": "Aug",
    "cur_days": 21,
-   "cur_in": 2.11,
+   "cur_in": 2.17,
    "avg_days": 20.2,
    "avg_in": 4.42,
    "min_days": 13,
@@ -226,12 +226,12 @@
   {
    "year": 2026,
    "days": 134,
-   "inches": 37.11
+   "inches": 37.16
   }
  ],
  "ytd": {
   "days": 134,
-  "inches": 37.11,
+  "inches": 37.16,
   "avg_days": 122.9,
   "avg_inches": 36.0,
   "min_days": 108,
@@ -239,7 +239,7 @@
   "min_inches": 22.39,
   "max_inches": 44.71,
   "z_days": 1.21,
-  "z_inches": 0.17,
+  "z_inches": 0.18,
   "rank_days": 2,
   "rank_inches": 7,
   "n_years": 12,
