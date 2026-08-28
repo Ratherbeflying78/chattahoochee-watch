@@ -1,13 +1,13 @@
 {
- "generated": "2026-08-27",
+ "generated": "2026-08-28",
  "location": "LaGrange, Georgia",
  "latitude": 33.0362,
  "longitude": -85.0313,
  "source": "Open-Meteo archive (ERA5 reanalysis)",
  "wet_day_threshold_in": 0.01,
  "current_year": 2026,
- "data_through": "2026-08-27",
- "through_label": "Aug 27",
+ "data_through": "2026-08-28",
+ "through_label": "Aug 28",
  "baseline_label": "2015\u20132025",
  "months": [
   {
@@ -104,8 +104,8 @@
   {
    "month": 8,
    "name": "Aug",
-   "cur_days": 22,
-   "cur_in": 2.42,
+   "cur_days": 23,
+   "cur_in": 2.75,
    "avg_days": 20.2,
    "avg_in": 4.42,
    "min_days": 13,
@@ -171,7 +171,7 @@
   {
    "year": 2015,
    "days": 115,
-   "inches": 27.65
+   "inches": 27.66
   },
   {
    "year": 2016,
@@ -185,63 +185,63 @@
   },
   {
    "year": 2018,
-   "days": 141,
-   "inches": 41.19
+   "days": 142,
+   "inches": 41.27
   },
   {
    "year": 2019,
-   "days": 119,
-   "inches": 32.59
+   "days": 120,
+   "inches": 32.62
   },
   {
    "year": 2020,
-   "days": 122,
-   "inches": 39.94
+   "days": 123,
+   "inches": 40.1
   },
   {
    "year": 2021,
-   "days": 123,
-   "inches": 40.79
+   "days": 124,
+   "inches": 40.85
   },
   {
    "year": 2022,
-   "days": 127,
-   "inches": 37.57
+   "days": 128,
+   "inches": 37.7
   },
   {
    "year": 2023,
-   "days": 132,
-   "inches": 41.9
+   "days": 133,
+   "inches": 42.49
   },
   {
    "year": 2024,
-   "days": 111,
-   "inches": 33.99
+   "days": 112,
+   "inches": 34.02
   },
   {
    "year": 2025,
-   "days": 126,
-   "inches": 33.93
+   "days": 127,
+   "inches": 33.97
   },
   {
    "year": 2026,
-   "days": 135,
-   "inches": 37.41
+   "days": 136,
+   "inches": 37.74
   }
  ],
  "ytd": {
-  "days": 135,
-  "inches": 37.41,
-  "avg_days": 123.3,
-  "avg_inches": 36.06,
+  "days": 136,
+  "inches": 37.74,
+  "avg_days": 124,
+  "avg_inches": 36.16,
   "min_days": 108,
-  "max_days": 141,
+  "max_days": 142,
   "min_inches": 22.39,
   "max_inches": 44.71,
   "z_days": 1.26,
-  "z_inches": 0.21,
+  "z_inches": 0.24,
   "rank_days": 2,
-  "rank_inches": 7,
+  "rank_inches": 6,
   "n_years": 12,
   "verdict_days": "Notably wetter than normal",
   "verdict_inches": "Normal"
