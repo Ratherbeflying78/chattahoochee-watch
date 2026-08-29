@@ -1,13 +1,13 @@
 {
- "generated": "2026-08-28",
+ "generated": "2026-08-29",
  "location": "LaGrange, Georgia",
  "latitude": 33.0362,
  "longitude": -85.0313,
  "source": "Open-Meteo archive (ERA5 reanalysis)",
  "wet_day_threshold_in": 0.01,
  "current_year": 2026,
- "data_through": "2026-08-28",
- "through_label": "Aug 28",
+ "data_through": "2026-08-29",
+ "through_label": "Aug 29",
  "baseline_label": "2015\u20132025",
  "months": [
   {
@@ -104,8 +104,8 @@
   {
    "month": 8,
    "name": "Aug",
-   "cur_days": 23,
-   "cur_in": 2.94,
+   "cur_days": 24,
+   "cur_in": 3.05,
    "avg_days": 20.2,
    "avg_in": 4.42,
    "min_days": 13,
@@ -170,23 +170,23 @@
  "ytd_by_year": [
   {
    "year": 2015,
-   "days": 115,
-   "inches": 27.66
+   "days": 116,
+   "inches": 27.9
   },
   {
    "year": 2016,
-   "days": 108,
-   "inches": 22.39
+   "days": 109,
+   "inches": 22.56
   },
   {
    "year": 2017,
-   "days": 132,
-   "inches": 44.71
+   "days": 133,
+   "inches": 44.74
   },
   {
    "year": 2018,
-   "days": 142,
-   "inches": 41.27
+   "days": 143,
+   "inches": 42.48
   },
   {
    "year": 2019,
@@ -195,51 +195,51 @@
   },
   {
    "year": 2020,
-   "days": 123,
-   "inches": 40.1
+   "days": 124,
+   "inches": 40.27
   },
   {
    "year": 2021,
-   "days": 124,
-   "inches": 40.85
+   "days": 125,
+   "inches": 41.02
   },
   {
    "year": 2022,
-   "days": 128,
-   "inches": 37.7
+   "days": 129,
+   "inches": 37.72
   },
   {
    "year": 2023,
-   "days": 133,
-   "inches": 42.49
+   "days": 134,
+   "inches": 42.83
   },
   {
    "year": 2024,
-   "days": 112,
-   "inches": 34.02
+   "days": 113,
+   "inches": 34.28
   },
   {
    "year": 2025,
-   "days": 127,
-   "inches": 33.97
+   "days": 128,
+   "inches": 34.16
   },
   {
    "year": 2026,
-   "days": 136,
-   "inches": 37.93
+   "days": 137,
+   "inches": 38.04
   }
  ],
  "ytd": {
-  "days": 136,
-  "inches": 37.93,
-  "avg_days": 124,
-  "avg_inches": 36.16,
-  "min_days": 108,
-  "max_days": 142,
-  "min_inches": 22.39,
-  "max_inches": 44.71,
-  "z_days": 1.26,
-  "z_inches": 0.27,
+  "days": 137,
+  "inches": 38.04,
+  "avg_days": 124.9,
+  "avg_inches": 36.42,
+  "min_days": 109,
+  "max_days": 143,
+  "min_inches": 22.56,
+  "max_inches": 44.74,
+  "z_days": 1.27,
+  "z_inches": 0.25,
   "rank_days": 2,
   "rank_inches": 6,
   "n_years": 12,
