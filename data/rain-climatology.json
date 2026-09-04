@@ -1,13 +1,13 @@
 {
- "generated": "2026-09-03",
+ "generated": "2026-09-04",
  "location": "LaGrange, Georgia",
  "latitude": 33.0362,
  "longitude": -85.0313,
  "source": "Open-Meteo archive (ERA5 reanalysis)",
  "wet_day_threshold_in": 0.01,
  "current_year": 2026,
- "data_through": "2026-09-03",
- "through_label": "Sep 3",
+ "data_through": "2026-09-04",
+ "through_label": "Sep 4",
  "baseline_label": "2015\u20132025",
  "months": [
   {
@@ -170,8 +170,8 @@
  "ytd_by_year": [
   {
    "year": 2015,
-   "days": 119,
-   "inches": 28.58
+   "days": 120,
+   "inches": 28.66
   },
   {
    "year": 2016,
@@ -180,13 +180,13 @@
   },
   {
    "year": 2017,
-   "days": 136,
-   "inches": 46.53
+   "days": 137,
+   "inches": 46.54
   },
   {
    "year": 2018,
-   "days": 147,
-   "inches": 42.71
+   "days": 148,
+   "inches": 42.74
   },
   {
    "year": 2019,
@@ -205,8 +205,8 @@
   },
   {
    "year": 2022,
-   "days": 132,
-   "inches": 37.8
+   "days": 133,
+   "inches": 38.56
   },
   {
    "year": 2023,
@@ -221,7 +221,7 @@
   {
    "year": 2025,
    "days": 129,
-   "inches": 34.18
+   "inches": 34.19
   },
   {
    "year": 2026,
@@ -232,16 +232,16 @@
  "ytd": {
   "days": 141,
   "inches": 38.28,
-  "avg_days": 127.6,
-  "avg_inches": 36.84,
+  "avg_days": 128,
+  "avg_inches": 36.92,
   "min_days": 111,
-  "max_days": 147,
+  "max_days": 148,
   "min_inches": 22.62,
-  "max_inches": 46.53,
-  "z_days": 1.37,
-  "z_inches": 0.21,
+  "max_inches": 46.54,
+  "z_days": 1.3,
+  "z_inches": 0.2,
   "rank_days": 2,
-  "rank_inches": 6,
+  "rank_inches": 7,
   "n_years": 12,
   "verdict_days": "Notably wetter than normal",
   "verdict_inches": "Normal"
