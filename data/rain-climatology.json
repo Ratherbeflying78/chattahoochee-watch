@@ -1,13 +1,13 @@
 {
- "generated": "2026-09-05",
+ "generated": "2026-09-06",
  "location": "LaGrange, Georgia",
  "latitude": 33.0362,
  "longitude": -85.0313,
  "source": "Open-Meteo archive (ERA5 reanalysis)",
  "wet_day_threshold_in": 0.01,
  "current_year": 2026,
- "data_through": "2026-09-05",
- "through_label": "Sep 5",
+ "data_through": "2026-09-06",
+ "through_label": "Sep 6",
  "baseline_label": "2015\u20132025",
  "months": [
   {
@@ -117,8 +117,8 @@
   {
    "month": 9,
    "name": "Sep",
-   "cur_days": 3,
-   "cur_in": 0.17,
+   "cur_days": 4,
+   "cur_in": 0.26,
    "avg_days": 12.6,
    "avg_in": 3.71,
    "min_days": 5,
@@ -170,8 +170,8 @@
  "ytd_by_year": [
   {
    "year": 2015,
-   "days": 121,
-   "inches": 28.81
+   "days": 122,
+   "inches": 28.87
   },
   {
    "year": 2016,
@@ -180,13 +180,13 @@
   },
   {
    "year": 2017,
-   "days": 138,
-   "inches": 46.69
+   "days": 139,
+   "inches": 46.83
   },
   {
    "year": 2018,
    "days": 149,
-   "inches": 42.77
+   "inches": 42.78
   },
   {
    "year": 2019,
@@ -200,13 +200,13 @@
   },
   {
    "year": 2021,
-   "days": 128,
-   "inches": 42.14
+   "days": 129,
+   "inches": 42.34
   },
   {
    "year": 2022,
-   "days": 134,
-   "inches": 39.17
+   "days": 135,
+   "inches": 39.18
   },
   {
    "year": 2023,
@@ -215,30 +215,30 @@
   },
   {
    "year": 2024,
-   "days": 116,
-   "inches": 34.38
+   "days": 117,
+   "inches": 34.51
   },
   {
    "year": 2025,
-   "days": 129,
-   "inches": 34.19
+   "days": 130,
+   "inches": 34.23
   },
   {
    "year": 2026,
-   "days": 142,
-   "inches": 38.42
+   "days": 143,
+   "inches": 38.51
   }
  ],
  "ytd": {
-  "days": 142,
-  "inches": 38.42,
-  "avg_days": 128.4,
-  "avg_inches": 37.01,
+  "days": 143,
+  "inches": 38.51,
+  "avg_days": 128.9,
+  "avg_inches": 37.06,
   "min_days": 111,
   "max_days": 149,
   "min_inches": 22.62,
-  "max_inches": 46.69,
-  "z_days": 1.33,
+  "max_inches": 46.83,
+  "z_days": 1.38,
   "z_inches": 0.21,
   "rank_days": 2,
   "rank_inches": 7,
@@ -257,6 +257,6 @@
  },
  "driest_gap": {
   "name": "Sep",
-  "gap": -3.54
+  "gap": -3.45
  }
 }
