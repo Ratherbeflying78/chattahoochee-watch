@@ -118,7 +118,7 @@
    "month": 9,
    "name": "Sep",
    "cur_days": 4,
-   "cur_in": 0.26,
+   "cur_in": 0.2,
    "avg_days": 12.6,
    "avg_in": 3.71,
    "min_days": 5,
@@ -226,12 +226,12 @@
   {
    "year": 2026,
    "days": 143,
-   "inches": 38.51
+   "inches": 38.44
   }
  ],
  "ytd": {
   "days": 143,
-  "inches": 38.51,
+  "inches": 38.44,
   "avg_days": 128.9,
   "avg_inches": 37.06,
   "min_days": 111,
@@ -239,7 +239,7 @@
   "min_inches": 22.62,
   "max_inches": 46.83,
   "z_days": 1.38,
-  "z_inches": 0.21,
+  "z_inches": 0.2,
   "rank_days": 2,
   "rank_inches": 7,
   "n_years": 12,
@@ -257,6 +257,6 @@
  },
  "driest_gap": {
   "name": "Sep",
-  "gap": -3.45
+  "gap": -3.51
  }
 }
