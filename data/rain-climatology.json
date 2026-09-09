@@ -117,7 +117,7 @@
   {
    "month": 9,
    "name": "Sep",
-   "cur_days": 7,
+   "cur_days": 6,
    "cur_in": 0.49,
    "avg_days": 12.6,
    "avg_in": 3.71,
@@ -225,20 +225,20 @@
   },
   {
    "year": 2026,
-   "days": 146,
-   "inches": 38.74
+   "days": 145,
+   "inches": 38.73
   }
  ],
  "ytd": {
-  "days": 146,
-  "inches": 38.74,
+  "days": 145,
+  "inches": 38.73,
   "avg_days": 130.4,
   "avg_inches": 37.16,
   "min_days": 111,
   "max_days": 152,
   "min_inches": 22.62,
   "max_inches": 46.83,
-  "z_days": 1.46,
+  "z_days": 1.37,
   "z_inches": 0.23,
   "rank_days": 2,
   "rank_inches": 7,
