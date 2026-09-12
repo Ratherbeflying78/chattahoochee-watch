@@ -1,13 +1,13 @@
 {
- "generated": "2026-09-11",
+ "generated": "2026-09-12",
  "location": "LaGrange, Georgia",
  "latitude": 33.0362,
  "longitude": -85.0313,
  "source": "Open-Meteo archive (ERA5 reanalysis)",
  "wet_day_threshold_in": 0.01,
  "current_year": 2026,
- "data_through": "2026-09-11",
- "through_label": "Sep 11",
+ "data_through": "2026-09-12",
+ "through_label": "Sep 12",
  "baseline_label": "2015\u20132025",
  "months": [
   {
@@ -117,8 +117,8 @@
   {
    "month": 9,
    "name": "Sep",
-   "cur_days": 8,
-   "cur_in": 0.67,
+   "cur_days": 9,
+   "cur_in": 1.07,
    "avg_days": 12.6,
    "avg_in": 3.71,
    "min_days": 5,
@@ -170,23 +170,23 @@
  "ytd_by_year": [
   {
    "year": 2015,
-   "days": 126,
-   "inches": 29.97
+   "days": 127,
+   "inches": 30.06
   },
   {
    "year": 2016,
-   "days": 112,
-   "inches": 22.93
+   "days": 113,
+   "inches": 23.17
   },
   {
    "year": 2017,
-   "days": 140,
-   "inches": 51.49
+   "days": 141,
+   "inches": 51.76
   },
   {
    "year": 2018,
-   "days": 154,
-   "inches": 43.62
+   "days": 155,
+   "inches": 43.94
   },
   {
    "year": 2019,
@@ -195,28 +195,28 @@
   },
   {
    "year": 2020,
-   "days": 130,
-   "inches": 40.92
+   "days": 131,
+   "inches": 41.07
   },
   {
    "year": 2021,
-   "days": 132,
-   "inches": 42.59
+   "days": 133,
+   "inches": 42.61
   },
   {
    "year": 2022,
-   "days": 140,
-   "inches": 39.6
+   "days": 141,
+   "inches": 39.7
   },
   {
    "year": 2023,
-   "days": 137,
-   "inches": 43.12
+   "days": 138,
+   "inches": 43.21
   },
   {
    "year": 2024,
-   "days": 119,
-   "inches": 34.86
+   "days": 120,
+   "inches": 35.04
   },
   {
    "year": 2025,
@@ -225,21 +225,21 @@
   },
   {
    "year": 2026,
-   "days": 147,
-   "inches": 38.91
+   "days": 148,
+   "inches": 39.31
   }
  ],
  "ytd": {
-  "days": 147,
-  "inches": 38.91,
-  "avg_days": 131.4,
-  "avg_inches": 37.86,
-  "min_days": 112,
-  "max_days": 154,
-  "min_inches": 22.93,
-  "max_inches": 51.49,
-  "z_days": 1.43,
-  "z_inches": 0.14,
+  "days": 148,
+  "inches": 39.31,
+  "avg_days": 132.2,
+  "avg_inches": 37.99,
+  "min_days": 113,
+  "max_days": 155,
+  "min_inches": 23.17,
+  "max_inches": 51.76,
+  "z_days": 1.44,
+  "z_inches": 0.18,
   "rank_days": 2,
   "rank_inches": 7,
   "n_years": 12,
@@ -257,6 +257,6 @@
  },
  "driest_gap": {
   "name": "Sep",
-  "gap": -3.04
+  "gap": -2.64
  }
 }
