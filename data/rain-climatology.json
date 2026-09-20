@@ -118,7 +118,7 @@
    "month": 9,
    "name": "Sep",
    "cur_days": 12,
-   "cur_in": 1.05,
+   "cur_in": 1.07,
    "avg_days": 12.6,
    "avg_in": 3.71,
    "min_days": 5,
@@ -226,12 +226,12 @@
   {
    "year": 2026,
    "days": 151,
-   "inches": 39.29
+   "inches": 39.31
   }
  ],
  "ytd": {
   "days": 151,
-  "inches": 39.29,
+  "inches": 39.31,
   "avg_days": 135.2,
   "avg_inches": 39.06,
   "min_days": 116,
@@ -257,6 +257,6 @@
  },
  "driest_gap": {
   "name": "Sep",
-  "gap": -2.66
+  "gap": -2.64
  }
 }
