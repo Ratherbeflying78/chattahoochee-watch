@@ -118,7 +118,7 @@
    "month": 9,
    "name": "Sep",
    "cur_days": 15,
-   "cur_in": 1.53,
+   "cur_in": 1.5,
    "avg_days": 12.6,
    "avg_in": 3.71,
    "min_days": 5,
@@ -226,12 +226,12 @@
   {
    "year": 2026,
    "days": 154,
-   "inches": 39.78
+   "inches": 39.74
   }
  ],
  "ytd": {
   "days": 154,
-  "inches": 39.78,
+  "inches": 39.74,
   "avg_days": 136,
   "avg_inches": 39.13,
   "min_days": 116,
