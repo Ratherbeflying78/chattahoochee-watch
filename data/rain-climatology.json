@@ -1,13 +1,13 @@
 {
- "generated": "2026-09-23",
+ "generated": "2026-09-24",
  "location": "LaGrange, Georgia",
  "latitude": 33.0362,
  "longitude": -85.0313,
  "source": "Open-Meteo archive (ERA5 reanalysis)",
  "wet_day_threshold_in": 0.01,
  "current_year": 2026,
- "data_through": "2026-09-23",
- "through_label": "Sep 23",
+ "data_through": "2026-09-24",
+ "through_label": "Sep 24",
  "baseline_label": "2015\u20132025",
  "months": [
   {
@@ -117,8 +117,8 @@
   {
    "month": 9,
    "name": "Sep",
-   "cur_days": 15,
-   "cur_in": 1.5,
+   "cur_days": 16,
+   "cur_in": 1.49,
    "avg_days": 12.6,
    "avg_in": 3.71,
    "min_days": 5,
@@ -170,8 +170,8 @@
  "ytd_by_year": [
   {
    "year": 2015,
-   "days": 129,
-   "inches": 30.27
+   "days": 130,
+   "inches": 30.52
   },
   {
    "year": 2016,
@@ -181,22 +181,22 @@
   {
    "year": 2017,
    "days": 145,
-   "inches": 51.94
+   "inches": 51.95
   },
   {
    "year": 2018,
-   "days": 160,
-   "inches": 44.1
+   "days": 161,
+   "inches": 44.36
   },
   {
    "year": 2019,
    "days": 124,
-   "inches": 33.08
+   "inches": 33.09
   },
   {
    "year": 2020,
-   "days": 138,
-   "inches": 45.3
+   "days": 139,
+   "inches": 46.03
   },
   {
    "year": 2021,
@@ -215,31 +215,31 @@
   },
   {
    "year": 2024,
-   "days": 123,
-   "inches": 37.38
+   "days": 124,
+   "inches": 37.42
   },
   {
    "year": 2025,
-   "days": 133,
-   "inches": 34.29
+   "days": 134,
+   "inches": 34.35
   },
   {
    "year": 2026,
-   "days": 154,
-   "inches": 39.74
+   "days": 155,
+   "inches": 39.73
   }
  ],
  "ytd": {
-  "days": 154,
-  "inches": 39.74,
-  "avg_days": 136,
-  "avg_inches": 39.13,
+  "days": 155,
+  "inches": 39.73,
+  "avg_days": 136.5,
+  "avg_inches": 39.25,
   "min_days": 116,
-  "max_days": 160,
+  "max_days": 161,
   "min_inches": 23.99,
-  "max_inches": 51.94,
-  "z_days": 1.51,
-  "z_inches": 0.08,
+  "max_inches": 51.95,
+  "z_days": 1.55,
+  "z_inches": 0.06,
   "rank_days": 2,
   "rank_inches": 7,
   "n_years": 12,
