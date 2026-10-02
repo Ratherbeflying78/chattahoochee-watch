@@ -130,8 +130,8 @@
   {
    "month": 10,
    "name": "Oct",
-   "cur_days": 0,
-   "cur_in": 0.01,
+   "cur_days": 1,
+   "cur_in": 0.06,
    "avg_days": 9.7,
    "avg_in": 2.78,
    "min_days": 3,
@@ -225,21 +225,21 @@
   },
   {
    "year": 2026,
-   "days": 154,
-   "inches": 39.72
+   "days": 155,
+   "inches": 39.78
   }
  ],
  "ytd": {
-  "days": 154,
-  "inches": 39.72,
+  "days": 155,
+  "inches": 39.78,
   "avg_days": 139.5,
   "avg_inches": 40.56,
   "min_days": 117,
   "max_days": 167,
   "min_inches": 24.06,
   "max_inches": 52.05,
-  "z_days": 1.18,
-  "z_inches": -0.11,
+  "z_days": 1.26,
+  "z_inches": -0.1,
   "rank_days": 2,
   "rank_inches": 8,
   "n_years": 12,
@@ -257,6 +257,6 @@
  },
  "driest_gap": {
   "name": "Oct",
-  "gap": -2.77
+  "gap": -2.72
  }
 }
