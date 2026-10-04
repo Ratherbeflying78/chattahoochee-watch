@@ -131,7 +131,7 @@
    "month": 10,
    "name": "Oct",
    "cur_days": 3,
-   "cur_in": 1.1,
+   "cur_in": 1.42,
    "avg_days": 9.7,
    "avg_in": 2.78,
    "min_days": 3,
@@ -226,12 +226,12 @@
   {
    "year": 2026,
    "days": 157,
-   "inches": 40.81
+   "inches": 41.13
   }
  ],
  "ytd": {
   "days": 157,
-  "inches": 40.81,
+  "inches": 41.13,
   "avg_days": 139.9,
   "avg_inches": 40.73,
   "min_days": 117,
@@ -239,7 +239,7 @@
   "min_inches": 24.06,
   "max_inches": 52.05,
   "z_days": 1.36,
-  "z_inches": 0.01,
+  "z_inches": 0.05,
   "rank_days": 2,
   "rank_inches": 7,
   "n_years": 12,
