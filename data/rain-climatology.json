@@ -226,12 +226,12 @@
   {
    "year": 2026,
    "days": 158,
-   "inches": 41.0
+   "inches": 40.99
   }
  ],
  "ytd": {
   "days": 158,
-  "inches": 41.0,
+  "inches": 40.99,
   "avg_days": 140.3,
   "avg_inches": 40.88,
   "min_days": 117,
