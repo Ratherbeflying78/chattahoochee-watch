@@ -13,21 +13,21 @@
   {
    "month": 1,
    "name": "Jan",
-   "cur_days": 12,
+   "cur_days": 11,
    "cur_in": 4.28,
    "avg_days": 12.1,
-   "avg_in": 4.99,
+   "avg_in": 4.97,
    "min_days": 8,
    "max_days": 16,
    "min_in": 2.23,
-   "max_in": 8.7,
+   "max_in": 8.65,
    "partial": false
   },
   {
    "month": 2,
    "name": "Feb",
    "cur_days": 11,
-   "cur_in": 3.77,
+   "cur_in": 3.76,
    "avg_days": 13.8,
    "avg_in": 5.09,
    "min_days": 10,
@@ -44,7 +44,7 @@
    "avg_days": 13.8,
    "avg_in": 4.96,
    "min_days": 11,
-   "max_days": 19,
+   "max_days": 18,
    "min_in": 2.96,
    "max_in": 8.11,
    "partial": false
@@ -54,20 +54,20 @@
    "name": "Apr",
    "cur_days": 9,
    "cur_in": 2.18,
-   "avg_days": 11.8,
-   "avg_in": 4.52,
+   "avg_days": 12,
+   "avg_in": 4.51,
    "min_days": 6,
    "max_days": 17,
-   "min_in": 2.76,
-   "max_in": 6.68,
+   "min_in": 2.77,
+   "max_in": 6.69,
    "partial": false
   },
   {
    "month": 5,
    "name": "May",
    "cur_days": 19,
-   "cur_in": 8.32,
-   "avg_days": 14.2,
+   "cur_in": 8.34,
+   "avg_days": 14,
    "avg_in": 4.48,
    "min_days": 8,
    "max_days": 19,
@@ -79,8 +79,8 @@
    "month": 6,
    "name": "Jun",
    "cur_days": 24,
-   "cur_in": 10.13,
-   "avg_days": 18.6,
+   "cur_in": 10.1,
+   "avg_days": 18.5,
    "avg_in": 4.36,
    "min_days": 13,
    "max_days": 25,
@@ -93,22 +93,22 @@
    "name": "Jul",
    "cur_days": 26,
    "cur_in": 3.53,
-   "avg_days": 21.8,
-   "avg_in": 3.95,
+   "avg_days": 21.6,
+   "avg_in": 3.94,
    "min_days": 16,
    "max_days": 26,
    "min_in": 2.08,
-   "max_in": 5.35,
+   "max_in": 5.34,
    "partial": false
   },
   {
    "month": 8,
    "name": "Aug",
-   "cur_days": 26,
+   "cur_days": 25,
    "cur_in": 3.25,
    "avg_days": 20.2,
    "avg_in": 4.42,
-   "min_days": 13,
+   "min_days": 14,
    "max_days": 27,
    "min_in": 1.22,
    "max_in": 7.35,
@@ -117,9 +117,9 @@
   {
    "month": 9,
    "name": "Sep",
-   "cur_days": 15,
+   "cur_days": 14,
    "cur_in": 1.46,
-   "avg_days": 12.6,
+   "avg_days": 12.5,
    "avg_in": 3.71,
    "min_days": 5,
    "max_days": 22,
@@ -132,7 +132,7 @@
    "name": "Oct",
    "cur_days": 7,
    "cur_in": 3.46,
-   "avg_days": 9.7,
+   "avg_days": 9.8,
    "avg_in": 2.78,
    "min_days": 3,
    "max_days": 17,
@@ -145,12 +145,12 @@
    "name": "Nov",
    "cur_days": null,
    "cur_in": null,
-   "avg_days": 9.2,
-   "avg_in": 3.67,
+   "avg_days": 9.3,
+   "avg_in": 3.66,
    "min_days": 3,
    "max_days": 17,
    "min_in": 0.88,
-   "max_in": 10.88,
+   "max_in": 10.84,
    "partial": false
   },
   {
@@ -158,12 +158,12 @@
    "name": "Dec",
    "cur_days": null,
    "cur_in": null,
-   "avg_days": 13.1,
-   "avg_in": 5.43,
+   "avg_days": 13.2,
+   "avg_in": 5.44,
    "min_days": 9,
-   "max_days": 17,
+   "max_days": 18,
    "min_in": 2.28,
-   "max_in": 9.65,
+   "max_in": 9.77,
    "partial": false
   }
  ],
@@ -175,23 +175,23 @@
   },
   {
    "year": 2016,
-   "days": 118,
+   "days": 117,
    "inches": 24.17
   },
   {
    "year": 2017,
-   "days": 152,
-   "inches": 54.68
+   "days": 151,
+   "inches": 54.63
   },
   {
    "year": 2018,
-   "days": 172,
-   "inches": 48.01
+   "days": 171,
+   "inches": 48.0
   },
   {
    "year": 2019,
-   "days": 132,
-   "inches": 33.72
+   "days": 131,
+   "inches": 33.6
   },
   {
    "year": 2020,
@@ -201,21 +201,21 @@
   {
    "year": 2021,
    "days": 149,
-   "inches": 49.13
+   "inches": 49.11
   },
   {
    "year": 2022,
-   "days": 145,
+   "days": 144,
    "inches": 39.9
   },
   {
    "year": 2023,
-   "days": 149,
+   "days": 148,
    "inches": 46.27
   },
   {
    "year": 2024,
-   "days": 130,
+   "days": 132,
    "inches": 45.59
   },
   {
@@ -225,20 +225,20 @@
   },
   {
    "year": 2026,
-   "days": 161,
+   "days": 158,
    "inches": 43.17
   }
  ],
  "ytd": {
-  "days": 161,
+  "days": 158,
   "inches": 43.17,
-  "avg_days": 143.4,
-  "avg_inches": 41.83,
-  "min_days": 118,
-  "max_days": 172,
+  "avg_days": 143,
+  "avg_inches": 41.81,
+  "min_days": 117,
+  "max_days": 171,
   "min_inches": 24.17,
-  "max_inches": 54.68,
-  "z_days": 1.33,
+  "max_inches": 54.63,
+  "z_days": 1.15,
   "z_inches": 0.16,
   "rank_days": 2,
   "rank_inches": 7,
@@ -248,15 +248,15 @@
  },
  "wettest": {
   "name": "Jun",
-  "cur_in": 10.13,
+  "cur_in": 10.1,
   "avg_in": 4.36
  },
  "wettest_gap": {
   "name": "Jun",
-  "gap": 5.77
+  "gap": 5.74
  },
  "driest_gap": {
   "name": "Apr",
-  "gap": -2.34
+  "gap": -2.33
  }
 }
