@@ -144,7 +144,7 @@
    "month": 11,
    "name": "Nov",
    "cur_days": 3,
-   "cur_in": 0.81,
+   "cur_in": 0.82,
    "avg_days": 9.3,
    "avg_in": 3.66,
    "min_days": 3,
@@ -257,6 +257,6 @@
  },
  "driest_gap": {
   "name": "Nov",
-  "gap": -2.85
+  "gap": -2.84
  }
 }
