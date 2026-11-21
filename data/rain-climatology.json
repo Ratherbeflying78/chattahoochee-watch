@@ -144,7 +144,7 @@
    "month": 11,
    "name": "Nov",
    "cur_days": 4,
-   "cur_in": 1.02,
+   "cur_in": 0.98,
    "avg_days": 9.3,
    "avg_in": 3.66,
    "min_days": 3,
@@ -226,12 +226,12 @@
   {
    "year": 2026,
    "days": 162,
-   "inches": 44.19
+   "inches": 44.16
   }
  ],
  "ytd": {
   "days": 162,
-  "inches": 44.19,
+  "inches": 44.16,
   "avg_days": 154.7,
   "avg_inches": 45.9,
   "min_days": 120,
@@ -239,7 +239,7 @@
   "min_inches": 24.43,
   "max_inches": 58.68,
   "z_days": 0.45,
-  "z_inches": -0.19,
+  "z_inches": -0.2,
   "rank_days": 3,
   "rank_inches": 8,
   "n_years": 12,
@@ -257,6 +257,6 @@
  },
  "driest_gap": {
   "name": "Nov",
-  "gap": -2.64
+  "gap": -2.68
  }
 }
